@@ -1,0 +1,46 @@
+---
+---
+
+<div id="panel-audio" class="absolute inset-0 flex flex-col hidden opacity-0 transition-opacity duration-500">
+    <div class="flex items-center justify-between mb-3">
+    <h3 class="text-xs font-bold text-purple-300 uppercase tracking-wider">Select Station</h3>
+    <div class="hidden md:flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 text-[10px]">
+        <span class="text-slate-400">Sensitivity</span>
+        <span id="sens-val" class="font-mono text-purple-400 w-6 text-right">1.0x</span>
+        <div class="flex items-center gap-1 ml-2">
+        <button class="w-4 h-4 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-purple-400 text-[10px]" onclick="document.getElementById('audio-sensitivity').stepDown(); document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">-</button>
+        <input type="range" id="audio-sensitivity" min="0.1" max="4" step="0.1" value="1.0" class="w-20 h-1 accent-purple-500 cursor-pointer">
+        <button class="w-4 h-4 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-purple-400 text-[10px]" onclick="document.getElementById('audio-sensitivity').stepUp(); document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">+</button>
+        </div>
+    </div>
+    </div>
+    
+    <!-- Station Grid & Mobile Sensitivity -->
+    <div class="flex flex-col gap-4">
+    <div id="station-grid" class="flex overflow-x-auto md:grid md:grid-cols-3 gap-3 pb-2 md:pb-0 scrollbar-hide snap-x transition-all duration-300">
+        <button class="station-btn group shrink-0 w-36 md:w-auto flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 p-4 rounded-2xl active:scale-[0.98] transition-all h-24 snap-center" data-url="https://streaming.positivity.radio/pr/posimeditation/icecast.audio">
+        <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Meditation</span>
+        <span class="text-[9px] text-slate-500 uppercase tracking-widest group-hover:text-slate-400">Ambient / Zen</span>
+        <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors duration-300 group-hover:bg-slate-500"></div>
+        </button>
+        <button class="station-btn group shrink-0 w-36 md:w-auto flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 p-4 rounded-2xl active:scale-[0.98] transition-all h-24 snap-center" data-url="https://classicfm.stream.publicradio.org/classicfm.mp3">
+        <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Classic FM</span>
+        <span class="text-[9px] text-slate-500 uppercase tracking-widest group-hover:text-slate-400">Orchestral</span>
+        <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors duration-300 group-hover:bg-slate-500"></div>
+        </button>
+        <button class="station-btn group shrink-0 w-36 md:w-auto flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 p-4 rounded-2xl active:scale-[0.98] transition-all h-24 snap-center" data-url="https://stream.zeno.fm/0r0xa792kwzuv">
+        <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Lofi Beats</span>
+        <span class="text-[9px] text-slate-500 uppercase tracking-widest group-hover:text-slate-400">Chill / Hop</span>
+        <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors duration-300 group-hover:bg-slate-500"></div>
+        </button>
+    </div>
+    
+    <!-- Mobile Sensitivity -->
+    <div class="md:hidden flex items-center justify-between bg-black/40 px-4 py-3 rounded-xl border border-white/5 text-xs">
+        <span class="text-slate-400 transition-colors">Sensitivity</span>
+        <div class="flex items-center gap-3">
+        <input type="range" id="audio-sensitivity-mobile" min="0.1" max="4" step="0.1" value="1.0" class="w-32 h-1 accent-purple-500 cursor-pointer" oninput="document.getElementById('audio-sensitivity').value = this.value; document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">
+        </div>
+    </div>
+    </div>
+</div>

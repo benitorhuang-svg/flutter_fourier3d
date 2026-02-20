@@ -1,11 +1,14 @@
 ---
+import CinematicPanel from "./CinematicPanel.astro";
+import AudioPanel from "./AudioPanel.astro";
+import ManualPanel from "./ManualPanel.astro";
 ---
-<div id="bottom-hud" class="absolute bottom-0 left-0 w-full p-2 md:p-8 transition-all duration-700 md:translate-y-0 translate-y-0">
-  <div class="bg-black/80 md:bg-white/5 backdrop-blur-2xl border-t md:border border-white/10 p-4 md:p-5 rounded-t-3xl md:rounded-3xl flex flex-col md:flex-row gap-4 md:gap-6 relative overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-[0_0_50px_rgba(0,0,0,0.5)]">
 
-    
+<div id="bottom-hud" class="absolute bottom-0 left-0 w-full p-2 md:p-8 transition-all duration-700 md:translate-y-0 translate-y-0 opacity-100 pointer-events-auto">
+  <div class="bg-black/70 md:bg-white/5 backdrop-blur-3xl border-t md:border border-white/10 p-4 md:p-5 rounded-t-3xl md:rounded-3xl flex flex-col md:flex-row gap-4 md:gap-6 relative overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all">
+
     <!-- Mobile Drag Handle -->
-    <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto md:hidden mb-2"></div>
+    <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto md:hidden mb-2 transition-colors hover:bg-white/40"></div>
     
     <!-- Status Display (Left Segment) -->
     <div class="hidden md:flex flex-col gap-3 min-w-[140px] border-r border-white/5 pr-6">
@@ -17,7 +20,7 @@
       
       <!-- Global Info / Status -->
       <div class="mt-auto pt-4 flex flex-col gap-1">
-          <div id="now-playing" class="text-[9px] text-emerald-400 font-mono hidden animate-pulse bg-emerald-400/10 px-2 py-1 rounded inline-block w-fit">
+          <div id="now-playing" class="text-[9px] text-emerald-400 font-mono hidden animate-pulse bg-emerald-400/10 px-2 py-1 rounded inline-block w-fit shadow-[0_0_10px_rgba(16,185,129,0.2)]">
             • LIVE STREAMING
           </div>
       </div>
@@ -25,127 +28,10 @@
 
     <!-- Dynamic Panel Area (Right Segment) -->
     <div class="flex-grow relative min-h-[300px] md:min-h-[180px]">
-      
-      <!-- Cinematic Tour Panel -->
-      <div id="panel-auto" class="absolute inset-0 flex flex-col hidden opacity-0 transition-opacity duration-500">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider">Cinematic Tour</h3>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
-              <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
-                <span>Rotation Speed</span>
-                <span id="orbit-speed-val" class="text-amber-400">1.0x</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-speed').stepDown(); document.getElementById('orbit-speed').dispatchEvent(new Event('input'))">-</button>
-                <div class="relative flex-grow h-4 flex items-center">
-                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
-                  <input type="range" id="orbit-speed" min="0.1" max="3" step="0.1" value="1.0" class="w-full h-1 accent-amber-500 z-10 relative">
-                </div>
-                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-speed').stepUp(); document.getElementById('orbit-speed').dispatchEvent(new Event('input'))">+</button>
-              </div>
-            </div>
-            <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
-              <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
-                <span>Orbit Radius</span>
-                <span id="orbit-radius-val" class="text-amber-400">350</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-radius').stepDown(); document.getElementById('orbit-radius').dispatchEvent(new Event('input'))">-</button>
-                <div class="relative flex-grow h-4 flex items-center">
-                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
-                  <input type="range" id="orbit-radius" min="200" max="600" step="10" value="350" class="w-full h-1 accent-amber-500 z-10 relative">
-                </div>
-                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-radius').stepUp(); document.getElementById('orbit-radius').dispatchEvent(new Event('input'))">+</button>
-              </div>
-            </div>
-            <!-- Sphere Size -->
-            <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
-              <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
-                <span>Sphere Size</span>
-                <span id="sphere-size-val" class="text-amber-400">0.3x</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('sphere-size').stepDown(); document.getElementById('sphere-size').dispatchEvent(new Event('input'))">-</button>
-                <div class="relative flex-grow h-4 flex items-center">
-                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
-                  <input type="range" id="sphere-size" min="0.1" max="5" step="0.1" value="0.3" class="w-full h-1 accent-amber-500 z-10 relative">
-                </div>
-                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('sphere-size').stepUp(); document.getElementById('sphere-size').dispatchEvent(new Event('input'))">+</button>
-              </div>
-            </div>
-          </div>
-      </div>
-      
-      <!-- Audio Panel -->
-      <div id="panel-audio" class="absolute inset-0 flex flex-col hidden opacity-0 transition-opacity duration-500">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-xs font-bold text-purple-300 uppercase tracking-wider">Select Station</h3>
-            <div class="hidden md:flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 text-[10px]">
-              <span class="text-slate-400">Sensitivity</span>
-              <span id="sens-val" class="font-mono text-purple-400 w-6 text-right">1.0x</span>
-              <div class="flex items-center gap-1 ml-2">
-                <button class="w-4 h-4 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-purple-400 text-[10px]" onclick="document.getElementById('audio-sensitivity').stepDown(); document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">-</button>
-                <input type="range" id="audio-sensitivity" min="0.1" max="4" step="0.1" value="1.0" class="w-20 h-1 accent-purple-500">
-                <button class="w-4 h-4 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-purple-400 text-[10px]" onclick="document.getElementById('audio-sensitivity').stepUp(); document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">+</button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Station Grid & Mobile Sensitivity -->
-          <div class="flex flex-col gap-4">
-            <div id="station-grid" class="flex overflow-x-auto md:grid md:grid-cols-3 gap-3 pb-2 md:pb-0 scrollbar-hide snap-x">
-              <button class="station-btn group shrink-0 w-36 md:w-auto flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl transition-all h-24 snap-center" data-url="https://streaming.positivity.radio/pr/posimeditation/icecast.audio">
-                <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Meditation</span>
-                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Ambient / Zen</span>
-                <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors"></div>
-              </button>
-              <button class="station-btn group shrink-0 w-36 md:w-auto flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl transition-all h-24 snap-center" data-url="https://classicfm.stream.publicradio.org/classicfm.mp3">
-                <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Classic FM</span>
-                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Orchestral</span>
-                <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors"></div>
-              </button>
-              <button class="station-btn group shrink-0 w-36 md:w-auto flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl transition-all h-24 snap-center" data-url="https://stream.zeno.fm/0r0xa792kwzuv">
-                <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Lofi Beats</span>
-                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Chill / Hop</span>
-                <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors"></div>
-              </button>
-            </div>
-            
-            <!-- Mobile Sensitivity -->
-            <div class="md:hidden flex items-center justify-between bg-black/40 px-4 py-3 rounded-xl border border-white/5 text-xs">
-              <span class="text-slate-400">Sensitivity</span>
-              <div class="flex items-center gap-3">
-                <input type="range" id="audio-sensitivity-mobile" min="0.1" max="4" step="0.1" value="1.0" class="w-32 h-1 accent-purple-500" oninput="document.getElementById('audio-sensitivity').value = this.value; document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">
-              </div>
-            </div>
-          </div>
-      </div>
-
-      <!-- Manual Panel -->
-      <div id="panel-manual" class="absolute inset-0 flex flex-col flex-grow transition-opacity duration-500">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
-            <!-- Presets -->
-            <div class="flex overflow-x-auto gap-1.5 pb-2 md:pb-0 scrollbar-hide">
-              <button class="preset-btn shrink-0 px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-bold text-slate-300" data-preset="square">Square</button>
-              <button class="preset-btn shrink-0 px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-bold text-slate-300" data-preset="sawtooth">Sawtooth</button>
-              <button class="preset-btn shrink-0 px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-bold text-slate-300" data-preset="triangle">Triangle</button>
-              <button class="preset-btn shrink-0 active px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest transition-all font-bold" data-preset="custom">Custom</button>
-            </div>
-            
-            <!-- Quantity -->
-            <div class="flex items-center justify-between md:justify-start gap-3 bg-black/40 px-4 py-2 md:px-3 md:py-1.5 rounded-xl border border-white/5 shrink-0">
-              <span class="text-[10px] md:text-[9px] uppercase font-bold text-slate-500 tracking-widest">Harmonics</span>
-              <input type="number" id="harmonic-count-input" value="10" min="1" max="60" class="bg-transparent w-10 text-sm md:text-xs font-mono text-blue-400 outline-none text-right">
-            </div>
-          </div>
-
-          <!-- Sliders Grid (N*5 Layout) -->
-          <div id="sliders-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 overflow-y-auto min-h-[150px] max-h-[40vh] md:max-h-[300px] pr-2 custom-scrollbar flex-grow">
-            <!-- Generated dynamically -->
-          </div>
-      </div>
+      <CinematicPanel />
+      <AudioPanel />
+      <ManualPanel />
+    </div>
 
     </div>
   </div>

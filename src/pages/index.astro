@@ -4,21 +4,28 @@ import '../styles/global.css';
 import TopNav from '../components/TopNav.astro';
 import BottomHUD from '../components/BottomHUD.astro';
 import VisualizerCanvas from '../components/VisualizerCanvas.astro';
+import { pwaInfo } from 'virtual:pwa-info';
 ---
 
 <html lang="zh-TW" class="dark">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/flutter_fourier3d/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="manifest" href="/flutter_fourier3d/manifest.webmanifest" />
+    { pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} /> }
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/flutter_fourier3d/sw.js');
-        });
-      }
+      import { registerSW } from 'virtual:pwa-register';
+
+      registerSW({
+        immediate: true,
+        onRegistered(r: any) {
+          // console.log('SW registered:', r);
+        },
+        onRegisterError(error: any) {
+          console.error('SW registration error', error);
+        }
+      });
     </script>
     <title>3D 傅立葉變換視覺化 | Astro + Tailwind</title>
     <link

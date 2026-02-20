@@ -1,36 +1,43 @@
 import { state, CONSTANTS } from "./state";
 import { audioPlayer, nowPlaying, resumeAudioContext, initAudio, switchStation } from "./audio";
 
+// Safe DOM Getter
+function getEl<T extends HTMLElement>(id: string): T {
+    const el = document.getElementById(id);
+    if (!el) console.warn(`Element #${id} not found.`);
+    return el as T;
+}
+
 // DOM Elements
-const slidersContainer = document.getElementById("sliders-container") as HTMLElement;
+const slidersContainer = getEl("sliders-container");
 const presetBtns = document.querySelectorAll(".preset-btn");
 
-const modeManual = document.getElementById("mode-manual")!;
-const modeAudio = document.getElementById("mode-audio")!;
-const modeAuto = document.getElementById("mode-auto")!;
-const panelManual = document.getElementById("panel-manual")!;
-const panelAudio = document.getElementById("panel-audio")!;
-const panelAuto = document.getElementById("panel-auto")!;
+const modeManual = getEl("mode-manual");
+const modeAudio = getEl("mode-audio");
+const modeAuto = getEl("mode-auto");
+const panelManual = getEl("panel-manual");
+const panelAudio = getEl("panel-audio");
+const panelAuto = getEl("panel-auto");
 
-export const orbitSpeedInput = document.getElementById("orbit-speed") as HTMLInputElement;
-export const orbitSpeedVal = document.getElementById("orbit-speed-val")!;
-export const orbitRadiusInput = document.getElementById("orbit-radius") as HTMLInputElement;
-const orbitRadiusVal = document.getElementById("orbit-radius-val")!;
-export const sphereSizeInput = document.getElementById("sphere-size") as HTMLInputElement;
-const sphereSizeVal = document.getElementById("sphere-size-val")!;
+export const orbitSpeedInput = getEl<HTMLInputElement>("orbit-speed");
+export const orbitSpeedVal = getEl("orbit-speed-val");
+export const orbitRadiusInput = getEl<HTMLInputElement>("orbit-radius");
+const orbitRadiusVal = getEl("orbit-radius-val");
+export const sphereSizeInput = getEl<HTMLInputElement>("sphere-size");
+const sphereSizeVal = getEl("sphere-size-val");
 
-export const btnAutoOrbit = document.getElementById("btn-auto-orbit")!;
-const btnImmersive = document.getElementById("btn-immersive")!;
-export const btnBloom = document.getElementById("btn-bloom")!;
-const btnFullscreen = document.getElementById("btn-fullscreen")!;
-const nav2D = document.getElementById("nav-2d")!;
+export const btnAutoOrbit = getEl("btn-auto-orbit");
+const btnImmersive = getEl("btn-immersive");
+export const btnBloom = getEl("btn-bloom");
+const btnFullscreen = getEl("btn-fullscreen");
+const nav2D = getEl("nav-2d");
 
-const harmonicCountInput = document.getElementById("harmonic-count-input") as HTMLInputElement;
+const harmonicCountInput = getEl<HTMLInputElement>("harmonic-count-input");
 const stationBtns = document.querySelectorAll(".station-btn") as NodeListOf<HTMLButtonElement>;
 
-export const topHeader = document.getElementById("top-header")!;
-export const bottomHud = document.getElementById("bottom-hud")!;
-export const cameraGuide = document.getElementById("camera-guide")!;
+export const topHeader = getEl("top-header");
+export const bottomHud = getEl("bottom-hud");
+export const cameraGuide = getEl("camera-guide");
 
 export let currentStationUrl = stationBtns[0]?.dataset.url;
 
@@ -74,19 +81,22 @@ export function setupUI(cb: UICallbacks) {
         }
     });
 
-    document.getElementById("canvas-container")!.addEventListener("click", () => {
-        if (state.isAutoOrbit) {
-            state.isAutoOrbit = false;
-            btnAutoOrbit.classList.remove("active");
-        }
-        if (state.isRadioMode && audioPlayer.paused) {
-            audioPlayer.play().then(() => {
-                nowPlaying.innerHTML = "• LIVE STREAMING";
-                nowPlaying.classList.remove("text-rose-400", "bg-rose-400/10");
-                nowPlaying.classList.add("text-emerald-400", "bg-emerald-400/10");
-            }).catch(() => { });
-        }
-    });
+    const canvasContainer = document.getElementById("canvas-container");
+    if (canvasContainer) {
+        canvasContainer.addEventListener("click", () => {
+            if (state.isAutoOrbit) {
+                state.isAutoOrbit = false;
+                btnAutoOrbit.classList.remove("active");
+            }
+            if (state.isRadioMode && audioPlayer.paused) {
+                audioPlayer.play().then(() => {
+                    nowPlaying.innerHTML = "• LIVE STREAMING";
+                    nowPlaying.classList.remove("text-rose-400", "bg-rose-400/10");
+                    nowPlaying.classList.add("text-emerald-400", "bg-emerald-400/10");
+                }).catch(() => { });
+            }
+        });
+    }
 
     btnBloom.addEventListener("click", () => {
         const isEnabled = !btnBloom.classList.contains("active");

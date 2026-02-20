@@ -10,6 +10,11 @@ export default defineConfig({
   integrations: [
     AstroPWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: true,
+        navigateFallback: '/flutter_fourier3d/',
+        suppressWarnings: true
+      },
       manifest: {
         name: "Fourier 3D",
         short_name: "Fourier3D",

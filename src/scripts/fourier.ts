@@ -115,11 +115,29 @@ setupUI({
     onUpdateHarmonicCount: () => updateHarmonicVisibility()
 });
 
-// --- RENDER LOOP ---
+// --- RENDER LOOP & FPS MONITOR ---
 const timer = new THREE.Timer();
+let frames = 0;
+let lastFpsTime = performance.now();
+let isDowngraded = false;
 
 function animate() {
     requestAnimationFrame(animate);
+
+    // Track FPS and optionally downgrade graphics
+    frames++;
+    const now = performance.now();
+    if (now - lastFpsTime >= 1000) {
+        const fps = frames * 1000 / (now - lastFpsTime);
+        if (fps < 30 && !isDowngraded) {
+            console.warn(`Low FPS (${Math.round(fps)}). Automatically downgrading visual quality...`);
+            renderer.setPixelRatio(1);
+            bloomPass.resolution.set(window.innerWidth / 3, window.innerHeight / 3);
+            isDowngraded = true;
+        }
+        frames = 0;
+        lastFpsTime = now;
+    }
 
     timer.update();
     const delta = timer.getDelta();

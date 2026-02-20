@@ -1,0 +1,53 @@
+---
+---
+
+<div id="panel-auto" class="absolute inset-0 flex flex-col hidden opacity-0 transition-opacity duration-500">
+    <div class="flex items-center justify-between mb-4">
+    <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider">Cinematic Tour</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
+        <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+        <span>Rotation Speed</span>
+        <span id="orbit-speed-val" class="text-amber-400">1.0x</span>
+        </div>
+        <div class="flex items-center gap-2">
+        <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-amber-400" onclick="document.getElementById('orbit-speed').stepDown(); document.getElementById('orbit-speed').dispatchEvent(new Event('input'))">-</button>
+        <div class="relative flex-grow h-4 flex items-center group">
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
+            <input type="range" id="orbit-speed" min="0.1" max="3" step="0.1" value="1.0" class="w-full h-1 accent-amber-500 z-10 relative cursor-pointer">
+        </div>
+        <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-amber-400" onclick="document.getElementById('orbit-speed').stepUp(); document.getElementById('orbit-speed').dispatchEvent(new Event('input'))">+</button>
+        </div>
+    </div>
+    <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
+        <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+        <span>Orbit Radius</span>
+        <span id="orbit-radius-val" class="text-amber-400">350</span>
+        </div>
+        <div class="flex items-center gap-2">
+        <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-amber-400" onclick="document.getElementById('orbit-radius').stepDown(); document.getElementById('orbit-radius').dispatchEvent(new Event('input'))">-</button>
+        <div class="relative flex-grow h-4 flex items-center group">
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
+            <input type="range" id="orbit-radius" min="200" max="600" step="10" value="350" class="w-full h-1 accent-amber-500 z-10 relative cursor-pointer">
+        </div>
+        <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-amber-400" onclick="document.getElementById('orbit-radius').stepUp(); document.getElementById('orbit-radius').dispatchEvent(new Event('input'))">+</button>
+        </div>
+    </div>
+    <!-- Sphere Size -->
+    <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
+        <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+        <span>Sphere Size</span>
+        <span id="sphere-size-val" class="text-amber-400">0.3x</span>
+        </div>
+        <div class="flex items-center gap-2">
+        <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-amber-400" onclick="document.getElementById('sphere-size').stepDown(); document.getElementById('sphere-size').dispatchEvent(new Event('input'))">-</button>
+        <div class="relative flex-grow h-4 flex items-center group">
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
+            <input type="range" id="sphere-size" min="0.1" max="5" step="0.1" value="0.3" class="w-full h-1 accent-amber-500 z-10 relative cursor-pointer">
+        </div>
+        <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-amber-400" onclick="document.getElementById('sphere-size').stepUp(); document.getElementById('sphere-size').dispatchEvent(new Event('input'))">+</button>
+        </div>
+    </div>
+    </div>
+</div>
