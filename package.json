@@ -1,0 +1,24 @@
+{
+  "name": "fourier-3d",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "format": "prettier --write .",
+    "pritiffy": "prettier --write ."
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.0",
+    "@types/three": "^0.183.0",
+    "astro": "^5.17.1",
+    "tailwindcss": "^4.2.0",
+    "three": "^0.183.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1"
+  }
+}

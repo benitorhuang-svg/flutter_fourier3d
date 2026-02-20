@@ -1,0 +1,138 @@
+---
+---
+<div id="bottom-hud" class="w-full p-4 md:p-8 pointer-events-none opacity-0 transition-opacity duration-700">
+  <div class="bg-white/5 backdrop-blur-2xl border border-white/10 p-5 rounded-3xl flex flex-col md:flex-row gap-6 relative overflow-hidden pointer-events-auto" style="box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+    
+    <!-- Status Display (Left Segment) -->
+    <div class="flex flex-col gap-3 min-w-[140px] md:min-w-[140px] border-r border-white/5 pr-6">
+      <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active State</h2>
+      
+      <div id="radio-mode-toggle" class="hidden"></div> <!-- Hidden input mapping for legacy JS compat -->
+      <input type="checkbox" id="cinema-toggle" class="hidden">
+      <input type="checkbox" id="bloom-toggle" class="hidden" checked>
+      
+      <!-- Global Info / Status -->
+      <div class="mt-auto pt-4 flex flex-col gap-1">
+          <div id="now-playing" class="text-[9px] text-emerald-400 font-mono hidden animate-pulse bg-emerald-400/10 px-2 py-1 rounded inline-block w-fit">
+            • LIVE STREAMING
+          </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Panel Area (Right Segment) -->
+    <div class="flex-grow relative min-h-[180px]">
+      
+      <!-- Cinematic Tour Panel -->
+      <div id="panel-auto" class="absolute inset-0 flex flex-col hidden opacity-0 transition-opacity duration-500">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider">Cinematic Tour</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
+              <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+                <span>Rotation Speed</span>
+                <span id="orbit-speed-val" class="text-amber-400">1.0x</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-speed').stepDown(); document.getElementById('orbit-speed').dispatchEvent(new Event('input'))">-</button>
+                <div class="relative flex-grow h-4 flex items-center">
+                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
+                  <input type="range" id="orbit-speed" min="0.1" max="3" step="0.1" value="1.0" class="w-full h-1 accent-amber-500 z-10 relative">
+                </div>
+                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-speed').stepUp(); document.getElementById('orbit-speed').dispatchEvent(new Event('input'))">+</button>
+              </div>
+            </div>
+            <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
+              <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+                <span>Orbit Radius</span>
+                <span id="orbit-radius-val" class="text-amber-400">350</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-radius').stepDown(); document.getElementById('orbit-radius').dispatchEvent(new Event('input'))">-</button>
+                <div class="relative flex-grow h-4 flex items-center">
+                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
+                  <input type="range" id="orbit-radius" min="200" max="600" step="10" value="350" class="w-full h-1 accent-amber-500 z-10 relative">
+                </div>
+                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('orbit-radius').stepUp(); document.getElementById('orbit-radius').dispatchEvent(new Event('input'))">+</button>
+              </div>
+            </div>
+            <!-- Sphere Size -->
+            <div class="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col gap-3">
+              <div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+                <span>Sphere Size</span>
+                <span id="sphere-size-val" class="text-amber-400">0.3x</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('sphere-size').stepDown(); document.getElementById('sphere-size').dispatchEvent(new Event('input'))">-</button>
+                <div class="relative flex-grow h-4 flex items-center">
+                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3 bg-amber-400/50 rounded pointer-events-none z-0"></div>
+                  <input type="range" id="sphere-size" min="0.1" max="5" step="0.1" value="0.3" class="w-full h-1 accent-amber-500 z-10 relative">
+                </div>
+                <button class="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-amber-400" onclick="document.getElementById('sphere-size').stepUp(); document.getElementById('sphere-size').dispatchEvent(new Event('input'))">+</button>
+              </div>
+            </div>
+          </div>
+      </div>
+      
+      <!-- Audio Panel -->
+      <div id="panel-audio" class="absolute inset-0 flex flex-col hidden opacity-0 transition-opacity duration-500">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold text-purple-300 uppercase tracking-wider">Select Station</h3>
+            <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 text-[10px]">
+              <span class="text-slate-400">Sensitivity</span>
+              <span id="sens-val" class="font-mono text-purple-400 w-6 text-right">1.0x</span>
+              <div class="flex items-center gap-1 ml-2">
+                <button class="w-4 h-4 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-purple-400 text-[10px]" onclick="document.getElementById('audio-sensitivity').stepDown(); document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">-</button>
+                <input type="range" id="audio-sensitivity" min="0.1" max="4" step="0.1" value="1.0" class="w-20 h-1 accent-purple-500">
+                <button class="w-4 h-4 flex items-center justify-center rounded bg-white/10 hover:bg-white/20 text-purple-400 text-[10px]" onclick="document.getElementById('audio-sensitivity').stepUp(); document.getElementById('audio-sensitivity').dispatchEvent(new Event('input'))">+</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Station Grid -->
+          <div id="station-grid" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button class="station-btn group flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl transition-all h-24" data-url="https://streaming.positivity.radio/pr/posimeditation/icecast.audio">
+              <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Meditation</span>
+              <span class="text-[9px] text-slate-500 uppercase tracking-widest">Ambient / Zen</span>
+              <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors"></div>
+            </button>
+            <button class="station-btn group flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl transition-all h-24" data-url="https://classicfm.stream.publicradio.org/classicfm.mp3">
+              <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Classic FM</span>
+              <span class="text-[9px] text-slate-500 uppercase tracking-widest">Orchestral</span>
+              <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors"></div>
+            </button>
+            <button class="station-btn group flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl transition-all h-24" data-url="https://stream.zeno.fm/0r0xa792kwzuv">
+              <span class="text-sm font-bold text-slate-300 group-hover:text-white mb-1">Lofi Beats</span>
+              <span class="text-[9px] text-slate-500 uppercase tracking-widest">Chill / Hop</span>
+              <div class="mt-3 w-1.5 h-1.5 rounded-full bg-slate-700 active-dot transition-colors"></div>
+            </button>
+          </div>
+      </div>
+
+      <!-- Manual Panel -->
+      <div id="panel-manual" class="absolute inset-0 flex flex-col flex-grow transition-opacity duration-500">
+          <div class="flex items-center justify-between mb-3">
+            <!-- Presets -->
+            <div class="flex gap-1.5">
+              <button class="preset-btn px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-bold text-slate-300" data-preset="square">Square</button>
+              <button class="preset-btn px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-bold text-slate-300" data-preset="sawtooth">Sawtooth</button>
+              <button class="preset-btn px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-bold text-slate-300" data-preset="triangle">Triangle</button>
+              <button class="preset-btn active px-3 py-1.5 rounded-xl text-[10px] uppercase tracking-widest transition-all font-bold" data-preset="custom">Custom</button>
+            </div>
+            
+            <!-- Quantity -->
+            <div class="flex items-center gap-3 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
+              <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest">Harmonics</span>
+              <input type="number" id="harmonic-count-input" value="10" min="1" max="60" class="bg-transparent w-8 text-xs font-mono text-blue-400 outline-none text-right">
+            </div>
+          </div>
+
+          <!-- Sliders Grid (N*5 Layout) -->
+          <div id="sliders-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar flex-grow">
+            <!-- Generated dynamically -->
+          </div>
+      </div>
+
+    </div>
+  </div>
+</div>
