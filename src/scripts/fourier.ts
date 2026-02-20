@@ -360,18 +360,30 @@ function switchMode(target: "manual" | "audio" | "auto") {
         panelAuto.classList.remove("hidden");
         setTimeout(() => panelAuto.classList.remove("opacity-0"), 10);
 
-        audioPlayer.pause();
+        // Pause carefully
+        if (!audioPlayer.paused) {
+            const playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    audioPlayer.pause();
+                }).catch(error => {
+                    // Auto-play was prevented
+                    console.log("Pause handled gracefully");
+                });
+            }
+        }
         nowPlaying.classList.add("hidden");
 
-        // Auto mode implies orbit
-        isAutoOrbit = true;
-        btnAutoOrbit.classList.add("active");
-    } else {
-        modeManual.classList.add("active");
-        panelManual.classList.remove("hidden");
-        setTimeout(() => panelManual.classList.remove("opacity-0"), 10);
-
-        audioPlayer.pause();
+        if (!audioPlayer.paused) {
+            const playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    audioPlayer.pause();
+                }).catch(error => {
+                    console.log("Pause handled gracefully");
+                });
+            }
+        }
         nowPlaying.classList.add("hidden");
     }
 }
@@ -410,18 +422,7 @@ btnImmersive.addEventListener("click", (e) => {
     }
 });
 
-const btnToggleHud = document.getElementById("btn-toggle-hud")!;
-btnToggleHud.addEventListener("click", () => {
-    if (bottomHud.classList.contains("opacity-0")) {
-        bottomHud.classList.remove("opacity-0", "pointer-events-none");
-        btnToggleHud.classList.add("active");
-    } else {
-        bottomHud.classList.add("opacity-0", "pointer-events-none");
-        btnToggleHud.classList.remove("active");
-    }
-});
-
-// Canvas interaction to exit immersive and un-block audio, but NO LONGER toggles HUD
+// Canvas interaction to exit immersive and un-block audio
 const handleCanvasTap = () => {
     // Still respect auto orbit cancellation for better UX
     if (isAutoOrbit) {
@@ -652,16 +653,19 @@ function switchStation(url: string) {
     currentStationUrl = url;
     audioPlayer.src = url;
     if (isRadioMode) {
-        audioPlayer.play().then(() => {
-            nowPlaying.innerHTML = "• LIVE STREAMING";
-            nowPlaying.classList.remove("text-rose-400", "bg-rose-400/10");
-            nowPlaying.classList.add("text-emerald-400", "bg-emerald-400/10");
-        }).catch((e: any) => {
-            console.error("Audio Switch Error:", e);
-            nowPlaying.innerHTML = "• 點擊畫面允許播放";
-            nowPlaying.classList.remove("text-emerald-400", "bg-emerald-400/10");
-            nowPlaying.classList.add("text-rose-400", "bg-rose-400/10");
-        });
+        const playPromise = audioPlayer.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                nowPlaying.innerHTML = "• LIVE STREAMING";
+                nowPlaying.classList.remove("text-rose-400", "bg-rose-400/10");
+                nowPlaying.classList.add("text-emerald-400", "bg-emerald-400/10");
+            }).catch((e: any) => {
+                console.error("Audio Switch Error:", e);
+                nowPlaying.innerHTML = "• 點擊畫面允許播放";
+                nowPlaying.classList.remove("text-emerald-400", "bg-emerald-400/10");
+                nowPlaying.classList.add("text-rose-400", "bg-rose-400/10");
+            });
+        }
     }
 }
 
