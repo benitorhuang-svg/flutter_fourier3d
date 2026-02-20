@@ -1,10 +1,34 @@
 // @ts-check
 import { defineConfig } from "astro/config";
-
 import tailwindcss from "@tailwindcss/vite";
+import AstroPWA from "@vite-pwa/astro";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://benitorhuang-svg.github.io",
+  base: "/flutter_fourier3d",
+  integrations: [
+    AstroPWA({
+      registerType: "autoUpdate",
+      manifest: {
+        name: "Fourier 3D",
+        short_name: "Fourier3D",
+        description: "Harmonic Synthesis Visualizer",
+        theme_color: "#020208",
+        background_color: "#020208",
+        icons: [
+          {
+            src: "favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,svg,png,webmanifest}"],
+      },
+    }),
+  ],
   vite: {
     plugins: [tailwindcss()],
     build: {

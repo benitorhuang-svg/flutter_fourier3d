@@ -12,6 +12,14 @@ import VisualizerCanvas from '../components/VisualizerCanvas.astro';
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="manifest" href="/flutter_fourier3d/manifest.webmanifest" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/flutter_fourier3d/sw.js');
+        });
+      }
+    </script>
     <title>3D 傅立葉變換視覺化 | Astro + Tailwind</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
