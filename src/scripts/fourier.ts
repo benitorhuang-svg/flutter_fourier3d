@@ -5,6 +5,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 import { CONSTANTS, state } from "./core/state";
+import { events, UI_EVENTS, AUDIO_EVENTS } from "./core/events";
 import { updateAudioAnalysis } from "./audio";
 import { setupUI, getOrbitSpeedInput, getOrbitRadiusInput, getSphereSizeInput } from "./ui";
 import {
@@ -16,6 +17,7 @@ import {
     sumGeom,
     epicycleSpheres,
     radiusLines,
+    placeholderCircles,
     epiConnector,
     connLines,
     connGeom
@@ -95,56 +97,64 @@ scene.add(gridHelper);
 initGeometry(scene);
 updateHarmonicVisibility();
 
-// --- BIND UI ---
-setupUI({
-    onSwitchMode: (mode) => { },
-    onToggle2D: (is2D) => {
-        if (state.is2DMode) {
-            camera.position.set(160, 0, 650);
-            controls.target.set(160, 0, 0);
-            gridHelper.visible = false;
-            state.isAutoOrbit = false;
-        } else {
-            camera.position.set(200, 150, 300);
-            controls.target.set(0, 0, 0);
-            gridHelper.visible = true;
-        }
-        updateHarmonicVisibility();
-    },
-    onToggleBloom: (enabled) => bloomPass.enabled = enabled,
-    onUpdateHarmonicCount: () => updateHarmonicVisibility(),
-    onResetCamera: () => {
-        if (state.is2DMode) {
-            camera.position.set(160, 0, 650);
-            controls.target.set(160, 0, 0);
-        } else {
-            camera.position.set(200, 150, 300);
-            controls.target.set(0, 0, 0);
-        }
-        controls.update();
+// --- EVENT HANDLERS ---
+events.on(UI_EVENTS.TOGGLE_2D, (is2D) => {
+    if (is2D) {
+        camera.position.set(160, 0, 650);
+        controls.target.set(160, 0, 0);
+        gridHelper.visible = false;
+        state.isAutoOrbit = false;
+    } else {
+        camera.position.set(200, 150, 300);
+        controls.target.set(0, 0, 0);
+        gridHelper.visible = true;
     }
+    updateHarmonicVisibility();
 });
 
-// --- RENDER LOOP & FPS MONITOR ---
+events.on(UI_EVENTS.TOGGLE_BLOOM, (enabled) => bloomPass.enabled = enabled);
+events.on(UI_EVENTS.HARMONIC_CHANGE, (count) => {
+    updateHarmonicVisibility();
+    // Sync UI labels if they exist
+    const display = document.getElementById("harmonic-count-display");
+    if (display) display.textContent = count.toString();
+    const valLabel = document.getElementById("harmonic-count-val");
+    if (valLabel) valLabel.textContent = count.toString();
+});
+events.on(UI_EVENTS.RESET_CAMERA, () => {
+    if (state.is2DMode) {
+        camera.position.set(160, 0, 650);
+        controls.target.set(160, 0, 0);
+    } else {
+        camera.position.set(200, 150, 300);
+        controls.target.set(0, 0, 0);
+    }
+    controls.update();
+});
+
+// Beat visualization
+let beatStrength = 0;
+events.on(AUDIO_EVENTS.BEAT, (strength) => {
+    beatStrength = strength;
+    // Visual reaction: burst of bloom and light intensity
+    bloomPass.strength = 0.8 + strength * 1.5;
+});
+
+// --- RENDER LOOP ---
 const timer = new THREE.Timer();
-let frames = 0;
-let lastFpsTime = performance.now();
-let isDowngraded = false;
 
 function animate() {
     requestAnimationFrame(animate);
 
-    // Track FPS and optionally downgrade graphics
-    frames++;
-    const now = performance.now();
-    if (now - lastFpsTime >= 1000) {
-        frames = 0;
-        lastFpsTime = now;
-    }
-
     timer.update();
     const delta = timer.getDelta();
     state.timeOffset -= delta * 0.8;
+
+    // Decay beat strength
+    beatStrength *= 0.9;
+    bloomPass.strength = THREE.MathUtils.lerp(bloomPass.strength, 0.8, 0.1);
+    pointLight.intensity = 4 + beatStrength * 10;
+    pointLight2.intensity = 4 + beatStrength * 10;
 
     const avgEnergy = updateAudioAnalysis();
     if (avgEnergy > 0) {
@@ -162,6 +172,9 @@ function animate() {
         camera.lookAt(0, 0, 0);
     }
 
+    const ssInput = getSphereSizeInput();
+    const globalScale = ssInput ? parseFloat(ssInput.value) : 1.0;
+
     const startX = -xRange / 2;
     const rightX = startX + xRange;
     const dx = xRange / (CONSTANTS.POINTS_PER_LINE - 1);
@@ -171,14 +184,7 @@ function animate() {
     const zHarmonicStart = zSum - 50;
 
     for (let pi = 0; pi < CONSTANTS.POINTS_PER_LINE; pi++) {
-        // x goes from startX to rightX (left to right visual representation in screen space)
         const x = startX + pi * dx;
-
-        // Since the wave comes out of the generator at the right side and moves left:
-        // the left-most point (startX) is the oldest (furthest in time/phase)
-        // the right-most point (rightX) is the newest (connected to the generator)
-        // We invert the x-mapping to phase so 'phase' increases as 'x' goes right
-        // Add timeOffset to create the wave motion
         const distFromRight = rightX - x;
         const phase = (distFromRight / period) * Math.PI * 2 + state.timeOffset;
 
@@ -188,8 +194,8 @@ function animate() {
             const n = i + 1;
             const amp = state.harmonics[i];
             const phi = state.phases[i] || 0;
-            // The wave formula
-            const waveVal = amp * Math.sin(n * phase + phi);
+            // SYNC: Apply global scale to the wave amplitude so it matches the epicycle spheres
+            const waveVal = amp * globalScale * Math.sin(n * phase + phi);
 
             ySum += waveVal;
 
@@ -216,23 +222,21 @@ function animate() {
                 const n = i + 1;
                 const amp = state.harmonics[i];
                 const phi = state.phases[i] || 0;
-
-                // Ensure phase precisely matches the wave's phase at x = rightX
                 const theta = n * epicyclePhase + phi;
 
                 epicycleSpheres[i].visible = true;
                 radiusLines[i].visible = true;
 
-                const ssInput = getSphereSizeInput();
-                let globalScale = ssInput ? parseFloat(ssInput.value) : 0.3;
+                // VISUAL CONSISTENCY: next center is cx + scaledAmp
+                const scaledAmp = amp * globalScale;
                 epicycleSpheres[i].position.set(cx, cy, cz);
-                const absAmp = Math.max(Math.abs(amp), 0.001) * globalScale;
+                const absAmp = Math.max(Math.abs(scaledAmp), 0.001);
                 epicycleSpheres[i].scale.set(absAmp, absAmp, absAmp);
                 epicycleSpheres[i].rotation.x += 0.005 * n;
                 epicycleSpheres[i].rotation.y += 0.008 * n;
 
-                const nextCx = cx + amp * Math.cos(theta);
-                const nextCy = cy + amp * Math.sin(theta);
+                const nextCx = cx + scaledAmp * Math.cos(theta);
+                const nextCy = cy + scaledAmp * Math.sin(theta);
 
                 radiusLines[i].geometry.attributes.position.setXYZ(0, cx, cy, cz);
                 radiusLines[i].geometry.attributes.position.setXYZ(1, nextCx, nextCy, cz);
@@ -243,9 +247,19 @@ function animate() {
 
                 cx = nextCx;
                 cy = nextCy;
+
+                // Placeholder logic: If amp is effectively 0, show a ghost circle to mark the spot
+                if (Math.abs(amp) < 0.5) {
+                    placeholderCircles[i].visible = true;
+                    placeholderCircles[i].position.set(cx, cy, cz);
+                    placeholderCircles[i].scale.set(6, 6, 6);
+                } else {
+                    placeholderCircles[i].visible = false;
+                }
             } else {
                 epicycleSpheres[i].visible = false;
                 radiusLines[i].visible = false;
+                placeholderCircles[i].visible = false;
             }
         }
 
@@ -259,6 +273,7 @@ function animate() {
         for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
             epicycleSpheres[i].visible = false;
             radiusLines[i].visible = false;
+            placeholderCircles[i].visible = false;
         }
         if (epiConnector) epiConnector.visible = false;
         connLines.visible = true;
@@ -298,6 +313,7 @@ function animate() {
     composer.render();
 }
 
+setupUI();
 animate();
 
 let resizeTimeout: ReturnType<typeof setTimeout>;

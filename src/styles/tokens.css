@@ -34,3 +34,25 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+.glow-pulse {
+    animation: glow-pulse 2s infinite ease-in-out;
+}
+
+@keyframes glow-pulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.4));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.8));
+    }
+}
+
+.btn-active-glow.active {
+    box-shadow: 0 0 15px var(--color-secondary);
+    border-color: var(--color-secondary);
+    background: rgba(168, 85, 247, 0.2);
+}

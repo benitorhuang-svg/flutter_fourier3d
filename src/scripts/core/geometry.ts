@@ -18,6 +18,7 @@ export let harmonicLines: THREE.Line[] = [];
 export let harmonicGeoms: THREE.BufferGeometry[] = [];
 export const epicycleSpheres: THREE.Mesh[] = [];
 export const radiusLines: THREE.Line[] = [];
+export const placeholderCircles: THREE.LineLoop[] = [];
 export let epiConnector: THREE.Line;
 export let connLines: THREE.LineSegments;
 export let connGeom: THREE.BufferGeometry;
@@ -35,12 +36,8 @@ export function initGeometry(scene: THREE.Scene) {
         const positions = new Float32Array(CONSTANTS.POINTS_PER_LINE * 3);
         geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
-        const color = new THREE.Color();
-        color.lerpColors(
-            new THREE.Color(0xec4899),
-            new THREE.Color(0x3b82f6),
-            i / Math.max(1, CONSTANTS.MAX_HARMONICS - 1),
-        );
+        const hue = (i * 0.1) % 1.0;
+        const color = new THREE.Color().setHSL(hue, 0.8, 0.55);
 
         const material = getMaterial(color, 0.6);
         const line = new THREE.Line(geom, material);
@@ -54,7 +51,7 @@ export function initGeometry(scene: THREE.Scene) {
     // 2. Epicycles
     for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
         const sphereGeom = new THREE.SphereGeometry(1, 16, 16);
-        const hue = (i * 0.15) % 1.0;
+        const hue = (i * 0.1) % 1.0;
         const color = new THREE.Color().setHSL(hue, 0.8, 0.55);
 
         const sphereMat = new THREE.MeshBasicMaterial({
@@ -85,6 +82,30 @@ export function initGeometry(scene: THREE.Scene) {
         rLine.visible = false;
         scene.add(rLine);
         radiusLines.push(rLine);
+
+        // 2.1 Placeholder Circle (Dashed-like guide)
+        const ghostGeom = new THREE.BufferGeometry();
+        const segments = 64;
+        const pts = new Float32Array((segments + 1) * 3);
+        for (let j = 0; j <= segments; j++) {
+            const theta = (j / segments) * Math.PI * 2;
+            pts[j * 3] = Math.cos(theta);
+            pts[j * 3 + 1] = Math.sin(theta);
+            pts[j * 3 + 2] = 0;
+        }
+        ghostGeom.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+        const ghostMat = new THREE.LineBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.15,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const ghostCircle = new THREE.LineLoop(ghostGeom, ghostMat);
+        ghostCircle.frustumCulled = false;
+        ghostCircle.visible = false;
+        scene.add(ghostCircle);
+        placeholderCircles.push(ghostCircle);
     }
 
     const epiConnGeom = new THREE.BufferGeometry();
@@ -116,7 +137,8 @@ export function initGeometry(scene: THREE.Scene) {
 export function updateHarmonicVisibility() {
     for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
         if (harmonicLines[i]) {
-            harmonicLines[i].visible = (i < state.NUM_HARMONICS) && !state.is2DMode;
+            // Only show in 3D mode AND if index is within current num harmonics
+            harmonicLines[i].visible = !state.is2DMode && (i < state.NUM_HARMONICS);
         }
     }
 }

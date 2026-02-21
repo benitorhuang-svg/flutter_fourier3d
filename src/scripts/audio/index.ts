@@ -1,4 +1,5 @@
 import { state } from "../core/state";
+import { events, AUDIO_EVENTS } from "../core/events";
 
 // Lazy getters for DOM elements to ensure they are fetched after DOM is ready
 export const getAudioPlayer = () => document.getElementById("audio-player") as HTMLAudioElement;
@@ -142,5 +143,10 @@ export function updateAudioAnalysis(): number {
         }
     }
 
-    return totalEnergy / state.NUM_HARMONICS;
+    const finalEnergy = totalEnergy / state.NUM_HARMONICS;
+    if (finalEnergy > 150) {
+        events.emit(AUDIO_EVENTS.BEAT, finalEnergy / 255);
+    }
+
+    return finalEnergy;
 }
