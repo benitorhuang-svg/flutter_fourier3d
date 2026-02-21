@@ -1,0 +1,36 @@
+:root {
+    /* Primary Colors */
+    --color-bg-deep: #020208;
+    --color-bg-glass: rgba(255, 255, 255, 0.05);
+    --color-border-glass: rgba(255, 255, 255, 0.1);
+
+    /* Semantic Colors */
+    --color-primary: #3b82f6;
+    /* Blue */
+    --color-secondary: #a855f7;
+    /* Purple */
+    --color-success: #10b981;
+    /* Emerald */
+    --color-warning: #f59e0b;
+    /* Amber */
+    --color-danger: #f43f5e;
+    /* Rose */
+    --color-info: #06b6d4;
+    /* Cyan */
+    --color-accent: #f472b6;
+    /* Pink */
+
+    /* Gradients */
+    --gradient-title: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6);
+
+    /* Animation Speeds */
+    --trans-fast: 150ms;
+    --trans-smooth: 700ms;
+}
+
+.text-gradient {
+    background: var(--gradient-title);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

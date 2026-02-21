@@ -4,9 +4,9 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-import { CONSTANTS, state } from "./state";
+import { CONSTANTS, state } from "./core/state";
 import { updateAudioAnalysis } from "./audio";
-import { setupUI, orbitSpeedInput, orbitRadiusInput, sphereSizeInput } from "./ui";
+import { setupUI, getOrbitSpeedInput, getOrbitRadiusInput, getSphereSizeInput } from "./ui";
 import {
     initGeometry,
     updateHarmonicVisibility,
@@ -19,7 +19,7 @@ import {
     epiConnector,
     connLines,
     connGeom
-} from "./geometry";
+} from "./core/geometry";
 
 // --- THREE.JS SETUP ---
 const container = document.getElementById("canvas-container") as HTMLElement;
@@ -100,8 +100,8 @@ setupUI({
     onSwitchMode: (mode) => { },
     onToggle2D: (is2D) => {
         if (state.is2DMode) {
-            camera.position.set(-160, 0, 650);
-            controls.target.set(-160, 0, 0);
+            camera.position.set(160, 0, 650);
+            controls.target.set(160, 0, 0);
             gridHelper.visible = false;
             state.isAutoOrbit = false;
         } else {
@@ -112,7 +112,17 @@ setupUI({
         updateHarmonicVisibility();
     },
     onToggleBloom: (enabled) => bloomPass.enabled = enabled,
-    onUpdateHarmonicCount: () => updateHarmonicVisibility()
+    onUpdateHarmonicCount: () => updateHarmonicVisibility(),
+    onResetCamera: () => {
+        if (state.is2DMode) {
+            camera.position.set(160, 0, 650);
+            controls.target.set(160, 0, 0);
+        } else {
+            camera.position.set(200, 150, 300);
+            controls.target.set(0, 0, 0);
+        }
+        controls.update();
+    }
 });
 
 // --- RENDER LOOP & FPS MONITOR ---
@@ -128,29 +138,24 @@ function animate() {
     frames++;
     const now = performance.now();
     if (now - lastFpsTime >= 1000) {
-        const fps = frames * 1000 / (now - lastFpsTime);
-        if (fps < 30 && !isDowngraded) {
-            console.warn(`Low FPS (${Math.round(fps)}). Automatically downgrading visual quality...`);
-            renderer.setPixelRatio(1);
-            bloomPass.resolution.set(window.innerWidth / 3, window.innerHeight / 3);
-            isDowngraded = true;
-        }
         frames = 0;
         lastFpsTime = now;
     }
 
     timer.update();
     const delta = timer.getDelta();
-    state.timeOffset += delta * 0.8;
+    state.timeOffset -= delta * 0.8;
 
     const avgEnergy = updateAudioAnalysis();
     if (avgEnergy > 0) {
-        state.timeOffset += (avgEnergy / 255) * 0.02;
+        state.timeOffset -= (avgEnergy / 255) * 0.02;
     }
 
     if (state.isAutoOrbit) {
-        const speed = parseFloat(orbitSpeedInput.value);
-        const radius = parseFloat(orbitRadiusInput.value);
+        const speedInput = getOrbitSpeedInput();
+        const radiusInput = getOrbitRadiusInput();
+        const speed = speedInput ? parseFloat(speedInput.value) : 1.0;
+        const radius = radiusInput ? parseFloat(radiusInput.value) : 350;
         const time = Date.now() * 0.0005 * speed;
         camera.position.x = Math.sin(time) * radius;
         camera.position.z = Math.cos(time) * radius;
@@ -158,6 +163,7 @@ function animate() {
     }
 
     const startX = -xRange / 2;
+    const rightX = startX + xRange;
     const dx = xRange / (CONSTANTS.POINTS_PER_LINE - 1);
     const period = xRange * 0.4;
 
@@ -165,8 +171,16 @@ function animate() {
     const zHarmonicStart = zSum - 50;
 
     for (let pi = 0; pi < CONSTANTS.POINTS_PER_LINE; pi++) {
+        // x goes from startX to rightX (left to right visual representation in screen space)
         const x = startX + pi * dx;
-        const phase = (x / period) * Math.PI * 2 - state.timeOffset;
+
+        // Since the wave comes out of the generator at the right side and moves left:
+        // the left-most point (startX) is the oldest (furthest in time/phase)
+        // the right-most point (rightX) is the newest (connected to the generator)
+        // We invert the x-mapping to phase so 'phase' increases as 'x' goes right
+        // Add timeOffset to create the wave motion
+        const distFromRight = rightX - x;
+        const phase = (distFromRight / period) * Math.PI * 2 + state.timeOffset;
 
         let ySum = 0;
 
@@ -174,6 +188,7 @@ function animate() {
             const n = i + 1;
             const amp = state.harmonics[i];
             const phi = state.phases[i] || 0;
+            // The wave formula
             const waveVal = amp * Math.sin(n * phase + phi);
 
             ySum += waveVal;
@@ -191,22 +206,25 @@ function animate() {
     stardust.visible = !state.is2DMode;
 
     if (state.is2DMode) {
-        let cx = startX - 90;
+        let cx = rightX + 110;
         let cy = 0;
         const cz = zSum;
-        const epiPhase = (startX / period) * Math.PI * 2 - state.timeOffset;
+        const epicyclePhase = state.timeOffset;
 
         for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
             if (i < state.NUM_HARMONICS) {
                 const n = i + 1;
                 const amp = state.harmonics[i];
                 const phi = state.phases[i] || 0;
-                const theta = n * epiPhase + phi;
+
+                // Ensure phase precisely matches the wave's phase at x = rightX
+                const theta = n * epicyclePhase + phi;
 
                 epicycleSpheres[i].visible = true;
                 radiusLines[i].visible = true;
 
-                let globalScale = sphereSizeInput ? parseFloat(sphereSizeInput.value) : 1.0;
+                const ssInput = getSphereSizeInput();
+                let globalScale = ssInput ? parseFloat(ssInput.value) : 0.3;
                 epicycleSpheres[i].position.set(cx, cy, cz);
                 const absAmp = Math.max(Math.abs(amp), 0.001) * globalScale;
                 epicycleSpheres[i].scale.set(absAmp, absAmp, absAmp);
@@ -233,7 +251,7 @@ function animate() {
 
         epiConnector.visible = true;
         epiConnector.geometry.attributes.position.setXYZ(0, cx, cy, zSum);
-        epiConnector.geometry.attributes.position.setXYZ(1, startX, cy, zSum);
+        epiConnector.geometry.attributes.position.setXYZ(1, rightX, cy, zSum);
         epiConnector.geometry.attributes.position.needsUpdate = true;
 
         connLines.visible = false;
@@ -260,7 +278,8 @@ function animate() {
         const idx = i * 2;
         if (i < state.NUM_HARMONICS) {
             const n = i + 1;
-            const phase = (sliceX / period) * Math.PI * 2 - state.timeOffset;
+            const distFromRight = rightX - sliceX;
+            const phase = (distFromRight / period) * Math.PI * 2 + state.timeOffset;
             const amp = state.harmonics[i];
             const phi = state.phases[i] || 0;
             const waveVal = amp * Math.sin(n * phase + phi);
@@ -288,6 +307,7 @@ window.addEventListener("resize", () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         bloomPass.resolution.set(window.innerWidth / 2, window.innerHeight / 2);
     }, 150);
 });

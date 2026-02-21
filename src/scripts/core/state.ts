@@ -1,9 +1,12 @@
-export const state = {
-    NUM_HARMONICS: 10,
+export const CONSTANTS = {
     MAX_HARMONICS: 60,
     POINTS_PER_LINE: 400,
-    harmonics: new Array(60).fill(0),
-    phases: new Array(60).fill(0),
+};
+
+export const state = {
+    NUM_HARMONICS: 10,
+    harmonics: new Array(CONSTANTS.MAX_HARMONICS).fill(0),
+    phases: new Array(CONSTANTS.MAX_HARMONICS).fill(0),
     timeOffset: 0,
     isRadioMode: false,
     is2DMode: false,
@@ -11,8 +14,9 @@ export const state = {
     isImmersiveMode: false
 };
 
+// Initialize default harmonic values (Square Wave)
 const scale = 67;
-for (let i = 0; i < state.MAX_HARMONICS; i++) {
+for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
     const n = i + 1;
     if (n % 2 !== 0) {
         state.harmonics[i] = scale * (4 / (n * Math.PI));
