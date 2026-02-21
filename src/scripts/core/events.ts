@@ -22,7 +22,8 @@ export const UI_EVENTS = {
     TOGGLE_2D: 'ui:toggle_2d',
     TOGGLE_BLOOM: 'ui:toggle_bloom',
     RESET_CAMERA: 'ui:reset_camera',
-    HARMONIC_CHANGE: 'ui:harmonic_change'
+    HARMONIC_CHANGE: 'ui:harmonic_change',
+    MARKET_DATA_LOADED: 'market:data_loaded'
 };
 
 export const AUDIO_EVENTS = {

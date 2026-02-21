@@ -1,0 +1,51 @@
+---
+import '../styles/global.css';
+import { pwaInfo } from 'virtual:pwa-info';
+import NavigationTabs from '../components/NavigationTabs.astro';
+
+interface Props {
+  title: string;
+  activeTab: 'home' | 'play_ground' | 'market_fourier' | 'market_data';
+}
+
+const { title, activeTab } = Astro.props;
+---
+
+<html lang="zh-TW" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/flutter_fourier3d/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    { pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} /> }
+    <script>
+      import { registerSW } from 'virtual:pwa-register';
+
+      registerSW({
+        immediate: true,
+        onRegistered(r: any) {
+          // console.log('SW registered:', r);
+        },
+        onRegisterError(error: any) {
+          console.error('SW registration error', error);
+        }
+      });
+    </script>
+    <title>{title}</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-950 text-slate-100 font-[Inter] antialiased selection:bg-purple-500/30 w-full h-screen overflow-hidden flex flex-col">
+    <!-- Global Tabs UI Overlay Layer -->
+    <div class="absolute top-0 left-0 w-full z-50 flex justify-center mt-4 pointer-events-none">
+      <NavigationTabs activeTab={activeTab} />
+    </div>
+
+    <!-- Page Content -->
+    <div class="relative flex-grow w-full h-full overflow-hidden">
+      <slot />
+    </div>
+  </body>
+</html>

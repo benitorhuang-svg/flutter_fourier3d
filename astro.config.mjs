@@ -3,10 +3,14 @@ import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import AstroPWA from "@vite-pwa/astro";
 
+import node from "@astrojs/node";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://benitorhuang-svg.github.io",
   base: "/flutter_fourier3d",
+  output: "server",
+
   integrations: [
     AstroPWA({
       registerType: "autoUpdate",
@@ -34,8 +38,14 @@ export default defineConfig({
       },
     }),
   ],
+
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      hmr: {
+        clientPort: 4321,
+      },
+    },
     build: {
       chunkSizeWarningLimit: 1000,
       rollupOptions: {
@@ -52,4 +62,8 @@ export default defineConfig({
       }
     }
   },
+
+  adapter: node({
+    mode: "standalone",
+  }),
 });

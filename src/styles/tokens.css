@@ -1,27 +1,30 @@
 :root {
-    /* Primary Colors */
-    --color-bg-deep: #020208;
-    --color-bg-glass: rgba(255, 255, 255, 0.05);
-    --color-border-glass: rgba(255, 255, 255, 0.1);
+    /* Primary Colors (FinTech Palette) */
+    --color-bg-deep: #020617;
+    /* Slate 950 */
+    --color-bg-glass: rgba(15, 23, 42, 0.6);
+    /* Slate with opacity */
+    --color-border-glass: rgba(255, 255, 255, 0.08);
 
-    /* Semantic Colors */
-    --color-primary: #3b82f6;
-    /* Blue */
-    --color-secondary: #a855f7;
-    /* Purple */
-    --color-success: #10b981;
-    /* Emerald */
-    --color-warning: #f59e0b;
-    /* Amber */
-    --color-danger: #f43f5e;
-    /* Rose */
-    --color-info: #06b6d4;
-    /* Cyan */
-    --color-accent: #f472b6;
-    /* Pink */
+    /* Tactical Semantic Colors */
+    --color-primary: #10b981;
+    /* Emerald 500 */
+    --color-secondary: #06b6d4;
+    /* Cyan 500 */
+    --color-success: #34d399;
+    /* Emerald 400 */
+    --color-warning: #facc15;
+    /* Yellow 400 */
+    --color-danger: #ef4444;
+    /* Red 500 */
+    --color-info: #38bdf8;
+    /* Sky 400 */
+    --color-accent: #818cf8;
+    /* Indigo 400 */
 
     /* Gradients */
-    --gradient-title: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6);
+    --gradient-premium: linear-gradient(135deg, #10b981, #06b6d4, #6366f1);
+    --gradient-text: linear-gradient(to bottom right, #ffffff, #94a3b8);
 
     /* Animation Speeds */
     --trans-fast: 150ms;
@@ -29,30 +32,43 @@
 }
 
 .text-gradient {
-    background: var(--gradient-title);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-premium {
+    background: var(--gradient-premium);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
-.glow-pulse {
-    animation: glow-pulse 2s infinite ease-in-out;
+.glow-pulse-emerald {
+    animation: glow-pulse-emerald 3s infinite ease-in-out;
 }
 
-@keyframes glow-pulse {
+@keyframes glow-pulse-emerald {
 
     0%,
     100% {
-        filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.4));
+        filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.2));
     }
 
     50% {
-        filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.8));
+        filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.6));
     }
 }
 
+.glass-card {
+    background: var(--color-bg-glass);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--color-border-glass);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
 .btn-active-glow.active {
-    box-shadow: 0 0 15px var(--color-secondary);
-    border-color: var(--color-secondary);
-    background: rgba(168, 85, 247, 0.2);
+    box-shadow: 0 0 15px var(--color-primary);
+    border-color: var(--color-primary);
+    background: rgba(16, 185, 129, 0.15);
 }

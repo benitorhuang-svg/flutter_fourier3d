@@ -11,16 +11,22 @@
     "pritiffy": "prettier --write ."
   },
   "dependencies": {
+    "@astrojs/node": "^9.5.4",
     "@tailwindcss/vite": "^4.2.0",
     "@types/three": "^0.183.0",
     "@vite-pwa/astro": "^1.2.0",
     "astro": "^5.17.1",
+    "better-sqlite3": "^12.6.2",
+    "drizzle-orm": "^0.45.1",
+    "fft.js": "^4.0.4",
     "nanostores": "^1.1.0",
     "tailwindcss": "^4.2.0",
     "three": "^0.183.0",
     "workbox-window": "^7.4.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "drizzle-kit": "^0.31.9",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
     "vite-plugin-pwa": "^1.2.0"

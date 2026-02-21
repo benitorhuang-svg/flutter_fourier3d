@@ -1,0 +1,198 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { db } from '../db';
+import { marketData } from '../db/schema';
+import { desc } from 'drizzle-orm';
+
+export const prerender = false;
+
+// Fetch the latest 100 entries from SQLite
+const history = await db.select().from(marketData).orderBy(desc(marketData.id)).limit(100);
+
+// Helper to format JSON preview
+const getPreview = (jsonStr: string | null) => {
+  if (!jsonStr) return 'N/A';
+  const arr = JSON.parse(jsonStr);
+  return `${arr.length} nodes: [${arr.slice(0, 3).map((v: number) => v.toFixed(2)).join(', ')}...]`;
+};
+---
+
+<Layout title="Database Explorer | Market Data" activeTab="market_data">
+  <main class="min-h-screen pt-28 pb-12 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+    
+    <div class="mb-10 flex flex-col md:flex-row justify-between items-end gap-6">
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-3">
+          <h1 class="text-5xl font-black tracking-tighter text-white">
+            DATABASE<span class="text-premium">MATRIX</span>
+          </h1>
+          <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] text-emerald-500 font-bold uppercase tracking-widest">v2.1 PERSISTENCE</span>
+        </div>
+        <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-medium opacity-60">
+          Persistent Spectral Nodes: SQLite Layer
+        </p>
+      </div>
+      
+      <div class="flex flex-wrap gap-4">
+        <div class="flex items-center gap-3 bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-2xl px-4 py-2 shadow-xl">
+          <div class="flex flex-col">
+            <span class="text-[8px] text-slate-500 font-black uppercase tracking-widest mb-0.5">Stock Code</span>
+            <input type="text" id="import-stock" placeholder="0050" class="bg-transparent text-xs font-mono text-emerald-400 outline-none w-14 uppercase placeholder:text-slate-700" />
+          </div>
+          <div class="w-px h-6 bg-white/5"></div>
+          <div class="flex flex-col">
+            <span class="text-[8px] text-slate-500 font-black uppercase tracking-widest mb-0.5">Market Date</span>
+            <input type="text" id="import-date" placeholder="20240415" class="bg-transparent text-xs font-mono text-white outline-none w-24 uppercase placeholder:text-slate-700" />
+          </div>
+          <button id="btn-import" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2 rounded-xl transition-all shadow-inner">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+        
+        <button id="download-json" class="btn-glass !px-6 !py-3 hover:!bg-emerald-500/10 hover:!border-emerald-500/30 !text-emerald-400 group">
+          <svg class="w-4 h-4 mr-2 group-hover:-translate-y-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Export
+        </button>
+        
+        <a href={`${import.meta.env.BASE_URL}/market-fourier`.replace(/\/\//g, '/')} class="btn-glass !px-6 !py-3 hover:!bg-white/10 !text-slate-300">
+          Return to Visualizer
+        </a>
+      </div>
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="glass-card !rounded-[2.5rem] overflow-hidden">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/5 bg-white/[0.02]">
+              <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center">Node</th>
+              <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Hash ID</th>
+              <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Market Pulse</th>
+              <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Synthesis Mode</th>
+              <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center">Spectral Fingerprint</th>
+              <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">State Preview</th>
+              <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-right">ISO Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/[0.03]">
+            {history.length === 0 ? (
+              <tr>
+                <td colspan="7" class="p-24 text-center text-slate-600 italic font-mono text-xs tracking-widest uppercase">
+                  Local cache empty. Initiating sync required.
+                </td>
+              </tr>
+            ) : (
+              history.map((row, index) => {
+                const isDuplicate = index < history.length - 1 && row.harmonicsJson === history[index+1].harmonicsJson;
+                const harmonics = JSON.parse(row.harmonicsJson || '[]');
+                const maxVal = Math.max(...harmonics, 0.001);
+                
+                return (
+                  <tr class={`hover:bg-white/[0.03] transition-all duration-300 group ${isDuplicate ? 'opacity-20 hover:opacity-100' : ''}`}>
+                    <td class="p-6 text-center">
+                       <div class={`w-2.5 h-2.5 rounded-full mx-auto ${isDuplicate ? 'bg-slate-700' : 'bg-emerald-500 animate-pulse-slow shadow-[0_0_12px_rgba(16,185,129,0.4)]'}`}></div>
+                    </td>
+                    <td class="p-6 font-mono text-[10px] text-slate-500 group-hover:text-emerald-500 transition-colors">#{row.id.toString().padStart(4, '0')}</td>
+                    <td class="p-6">
+                      <span class={`px-3 py-1.5 rounded-xl text-[10px] font-black font-mono border transition-all ${
+                        isDuplicate ? 'bg-white/5 border-white/5 text-slate-600' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 group-hover:border-emerald-500/40 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                      }`}>
+                        {row.marketTime}
+                      </span>
+                    </td>
+                    <td class="p-6">
+                      <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase group-hover:text-white transition-colors">
+                        {row.mode}
+                      </span>
+                    </td>
+                  <td class="p-6 text-center">
+                    <div class="flex items-end gap-0.5 h-8 w-40 bg-slate-900/40 border border-white/5 rounded-lg px-2 group-hover:border-emerald-500/30 transition-all mx-auto shadow-inner">
+                      {harmonics.slice(0, 40).map((v: number) => (
+                        <div 
+                          class="bg-emerald-500 group-hover:bg-cyan-400 w-1.5 rounded-t-[1px] transition-all duration-500 opacity-40 group-hover:opacity-100" 
+                          style={`height: ${Math.max(10, (v/maxVal)*100)}%`}
+                        ></div>
+                      ))}
+                    </div>
+                  </td>
+                  <td class="p-6 text-[10px] font-mono text-slate-500 italic max-w-xs truncate opacity-60 group-hover:opacity-100 transition-opacity">
+                    {getPreview(row.harmonicsJson)}
+                  </td>
+                  <td class="p-6 text-right">
+                     <span class="text-[10px] font-mono text-slate-600 group-hover:text-slate-400 transition-colors">
+                       {new Date(row.timestamp).toLocaleTimeString()}
+                     </span>
+                  </td>
+                </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Stats Footer -->
+    <div class="mt-6 flex justify-between items-center text-[9px] font-mono text-slate-500 uppercase tracking-widest">
+      <div>Total Snapshots: {history.length} / 100 shown</div>
+      <div>Node Performance: {history.length > 0 ? "Optimized" : "Waiting for Sync"}</div>
+    </div>
+  </main>
+
+  <script>
+    const baseUrl = (window as any).baseUrl || '/flutter_fourier3d';
+    
+    // Client-side download logic
+    document.getElementById('download-json')?.addEventListener('click', () => {
+      window.location.href = `${baseUrl}/api/sync?action=get-timeline`;
+    });
+
+    // Import Historical Day
+    document.getElementById('btn-import')?.addEventListener('click', async () => {
+      const stockInput = document.getElementById('import-stock') as HTMLInputElement;
+      const dateInput = document.getElementById('import-date') as HTMLInputElement;
+      const stock = stockInput?.value.trim();
+      const date = dateInput?.value.trim();
+      
+      if (stock && !/^\d{4}$/.test(stock)) {
+          alert("Please enter a 4-digit stock number (e.g., 0050)");
+          return;
+      }
+      if (!/^\d{8}$/.test(date)) {
+        alert("Please enter date as YYYYMMDD");
+        return;
+      }
+      
+      const btn = document.getElementById('btn-import');
+      if (btn) btn.style.opacity = '0.5';
+
+      try {
+        const url = stock 
+            ? `${baseUrl}/api/sync?date=${date}&stock=${stock}`
+            : `${baseUrl}/api/sync?date=${date}`;
+
+        const res = await fetch(url);
+        if (res.ok) {
+          alert(`Successfully imported ${stock || 'TAIEX'} data for ${date}`);
+          window.location.reload();
+        } else {
+          alert("Failed to import. Market might be closed on that day or stock not found.");
+        }
+      } catch (e) {
+        alert("Sync error.");
+      } finally {
+        if (btn) btn.style.opacity = '1';
+      }
+    });
+  </script>
+</Layout>
+
+<style is:global>
+  body {
+    background-color: #020208;
+    background-image: 
+      radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+  }
+</style>

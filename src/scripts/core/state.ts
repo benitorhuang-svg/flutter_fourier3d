@@ -1,12 +1,14 @@
 export const CONSTANTS = {
     MAX_HARMONICS: 60,
-    POINTS_PER_LINE: 400,
+    POINTS_PER_LINE: 1000,
 };
 
 export const state = {
     NUM_HARMONICS: 10,
     harmonics: new Array(CONSTANTS.MAX_HARMONICS).fill(0),
     phases: new Array(CONSTANTS.MAX_HARMONICS).fill(0),
+    targetHarmonics: new Array(CONSTANTS.MAX_HARMONICS).fill(0), // For smooth interpolation
+    targetPhases: new Array(CONSTANTS.MAX_HARMONICS).fill(0),    // For smooth interpolation
     timeOffset: 0,
     isRadioMode: false,
     is2DMode: false,

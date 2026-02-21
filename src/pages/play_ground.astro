@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TopNav from '../components/TopNav.astro';
+import BottomHUD from '../components/BottomHUD.astro';
+import VisualizerCanvas from '../components/VisualizerCanvas.astro';
+---
+
+<Layout title="Playground | 3D 傅立葉變換視覺化" activeTab="play_ground">
+  <!-- Background 3D Canvas (Atomic Component) -->
+  <VisualizerCanvas />
+
+  <!-- Foreground UI Layer -->
+  <main class="absolute inset-0 z-10 flex flex-col pointer-events-none">
+    
+    <!-- Top Bar: Title & Global Toggles (Atomic Component) -->
+    <TopNav />
+
+    <!-- Center Space (Camera Controls Guide) -->
+    <div id="camera-guide" class="flex-grow flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-700">
+        <div class="bg-black/40 backdrop-blur-md border border-white/5 px-4 py-2 rounded-full text-[10px] text-slate-400 tracking-widest uppercase pointer-events-auto">
+          Drag to Rotate • Right-Click to Pan • Scroll to Zoom
+        </div>
+    </div>
+
+    <!-- Bottom Dashboard HUD (Atomic Component) -->
+    <BottomHUD />
+    <audio id="audio-player" crossorigin="anonymous" class="hidden"></audio>
+  </main>
+
+  <!-- Client Script with Logic -->
+  <!-- Note: we should import the script safely. Astro's default behavior allows module importing -->
+  <script src="../scripts/fourier.ts"></script>
+</Layout>

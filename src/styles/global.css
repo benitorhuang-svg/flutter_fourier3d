@@ -1,22 +1,29 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+::selection {
+    background: rgba(16, 185, 129, 0.3);
+    color: white;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
     height: 6px;
+    width: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(15, 23, 42, 0.4);
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(16, 185, 129, 0.1);
     border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(16, 185, 129, 0.3);
 }
 
 /* Base HUD Slider Styles */
@@ -28,98 +35,60 @@ input[type="range"] {
 
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    height: 12px;
-    width: 12px;
-
-    @media (max-width: 768px) {
-        height: 10px;
-        width: 10px;
-    }
-
+    height: 14px;
+    width: 14px;
+    background: var(--color-primary);
     border-radius: 50%;
     cursor: pointer;
-    margin-top: -4px;
-    transition: transform 0.1s;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    transition: all 0.2s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.3);
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
     width: 100%;
     height: 4px;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 2px;
-}
-
-input[type="range"]:focus {
-    outline: none;
-}
-
-.accent-blue-500::-webkit-slider-thumb {
-    background: #3b82f6;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
-}
-
-.accent-purple-500::-webkit-slider-thumb {
-    background: #a855f7;
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
 }
 
 /* Buttons & Utilities */
 .btn-glass {
-    width: 2.5rem;
-    height: 2.5rem;
-
-    @media (max-width: 768px) {
-        width: 2rem;
-        height: 2rem;
-    }
-
+    padding: 0.5rem 1rem;
     border-radius: 0.75rem;
-    background-color: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--color-bg-glass);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--color-border-glass);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 .btn-glass:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .btn-glass:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
 }
 
 .btn-glass.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-}
-
-.preset-btn.active {
-    background-color: rgba(37, 99, 235, 0.2);
-    border-color: rgba(59, 130, 246, 0.5);
-    color: rgb(96, 165, 250);
-    box-shadow: 0 0 15px rgba(37, 99, 235, 0.2);
-}
-
-.station-btn.active {
-    background-color: rgba(168, 85, 247, 0.1);
-    border-color: rgba(168, 85, 247, 0.5);
-    transform: scale(1.02);
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
-}
-
-.station-btn.active .active-dot {
-    background-color: rgb(168, 85, 247);
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: var(--color-primary);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
 }

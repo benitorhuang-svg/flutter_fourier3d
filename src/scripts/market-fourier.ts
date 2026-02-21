@@ -5,9 +5,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 import { CONSTANTS, state } from "./core/state";
-import { events, UI_EVENTS, AUDIO_EVENTS } from "./core/events";
-import { updateAudioAnalysis } from "./audio";
-import { setupUI, getOrbitSpeedInput, getOrbitRadiusInput, getSphereSizeInput } from "./ui";
+import { fetchMarketData } from "./market/api";
 import {
     initGeometry,
     updateHarmonicVisibility,
@@ -26,7 +24,7 @@ import {
 // --- THREE.JS SETUP ---
 const container = document.getElementById("canvas-container") as HTMLElement;
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x020208, 0.0008); // Reduced fog density for clearer lines
+scene.fog = new THREE.FogExp2(0x020208, 0.0008);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
 camera.position.set(200, 150, 300);
@@ -83,7 +81,7 @@ particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
 const particlesMaterial = new THREE.PointsMaterial({
     size: 4.0,
     map: starTexture,
-    color: 0x8b5cf6,
+    color: 0x10b981, // Emerald green for market
     transparent: true,
     opacity: 0.8,
     blending: THREE.AdditiveBlending,
@@ -97,15 +95,15 @@ scene.add(stardust);
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 scene.add(ambientLight);
 
-const pointLight = new THREE.PointLight(0xec4899, 4, 800);
+const pointLight = new THREE.PointLight(0x34d399, 4, 800); // emerald
 pointLight.position.set(-100, 200, -100);
 scene.add(pointLight);
 
-const pointLight2 = new THREE.PointLight(0x3b82f6, 4, 800);
+const pointLight2 = new THREE.PointLight(0x06b6d4, 4, 800); // cyan
 pointLight2.position.set(200, 200, 200);
 scene.add(pointLight2);
 
-const gridHelper = new THREE.GridHelper(1000, 50, 0x8b5cf6, 0x3b82f6);
+const gridHelper = new THREE.GridHelper(1000, 50, 0x10b981, 0x06b6d4);
 gridHelper.material.opacity = 0.15;
 gridHelper.material.transparent = true;
 gridHelper.material.blending = THREE.AdditiveBlending;
@@ -114,50 +112,155 @@ gridHelper.position.y = -80;
 scene.add(gridHelper);
 
 // --- INIT GEOMETRIES ---
+state.NUM_HARMONICS = 60; // Max harmonics for full market data
 initGeometry(scene);
 updateHarmonicVisibility();
 
-// --- EVENT HANDLERS ---
-events.on(UI_EVENTS.TOGGLE_2D, (is2D) => {
-    if (is2D) {
-        camera.position.set(160, 0, 650);
-        controls.target.set(160, 0, 0);
-        gridHelper.visible = false;
-        state.isAutoOrbit = false;
-    } else {
-        camera.position.set(200, 150, 300);
-        controls.target.set(0, 0, 0);
-        gridHelper.visible = true;
-    }
-    updateHarmonicVisibility();
-});
+// Data Loading Phase
+let isDataLoaded = false;
+let globalScale = 1.0;
 
-events.on(UI_EVENTS.TOGGLE_BLOOM, (enabled) => bloomPass.enabled = enabled);
-events.on(UI_EVENTS.HARMONIC_CHANGE, (count) => {
-    updateHarmonicVisibility();
-    // Sync UI labels if they exist
-    const display = document.getElementById("harmonic-count-display");
-    if (display) display.textContent = count.toString();
-    const valLabel = document.getElementById("harmonic-count-val");
-    if (valLabel) valLabel.textContent = count.toString();
-});
-events.on(UI_EVENTS.RESET_CAMERA, () => {
-    if (state.is2DMode) {
-        camera.position.set(160, 0, 650);
-        controls.target.set(160, 0, 0);
-    } else {
-        camera.position.set(200, 150, 300);
-        controls.target.set(0, 0, 0);
-    }
-    controls.update();
-});
+const syncUrl = `${import.meta.env.BASE_URL}/api/sync`.replace(/\/\//g, '/');
 
-// Beat visualization
-let beatStrength = 0;
-events.on(AUDIO_EVENTS.BEAT, (strength) => {
-    beatStrength = strength;
-    // Visual reaction: burst of bloom and light intensity
-    bloomPass.strength = 0.8 + strength * 1.5;
+async function loadData(mode: any = 'volume-delta') {
+    const loader = document.getElementById("market-loader");
+    if (loader) {
+        loader.style.opacity = '1';
+        loader.style.pointerEvents = 'auto';
+    }
+
+    state.isAutoOrbit = true;
+
+    let data;
+    try {
+        const syncRes = await fetch(`${syncUrl}?mode=${mode}`);
+        if (syncRes.ok) {
+            const json = await syncRes.json();
+            data = json.current;
+            updateHistoryTimeline(); // Refresh slider when new data comes in
+        } else {
+            throw new Error("Local sync not available");
+        }
+    } catch (e) {
+        console.warn("DB Sync failed, falling back to direct API fetch.");
+        data = await fetchMarketData(mode);
+    }
+
+    if (data) {
+        applyMarketData(data);
+    }
+
+    // UI Updates
+    const ampLabel = document.getElementById("legend-amp-val");
+    const phaseLabel = document.getElementById("legend-phase-val");
+
+    if (mode === 'volume-delta') {
+        if (ampLabel) ampLabel.textContent = "Volume Intensity";
+        if (phaseLabel) phaseLabel.textContent = "Constant (0)";
+    } else if (mode === 'price-fft') {
+        if (ampLabel) ampLabel.textContent = "Cyclic Dominance";
+        if (phaseLabel) phaseLabel.textContent = "Harmonic Phase";
+    } else if (mode === 'multi-dim') {
+        if (ampLabel) ampLabel.textContent = "Volume Height";
+        if (phaseLabel) phaseLabel.textContent = "Price Variance";
+    }
+
+    if (loader) {
+        loader.style.opacity = '0';
+        loader.style.pointerEvents = 'none';
+    }
+}
+
+// Auto-Sync: Every 5 minutes to keep history growing
+setInterval(() => {
+    const activeBtn = document.querySelector('.market-mode-btn.active');
+    const mode = activeBtn?.getAttribute('data-mode') || 'volume-delta';
+    console.log("Auto-Syncing market data...");
+    loadData(mode);
+}, 1000 * 60 * 5);
+
+function applyMarketData(data: any) {
+    for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
+        // Use target arrays to trigger smooth lerping in the render loop
+        const h = data.harmonics[i] ?? 0;
+        const p = data.phases[i] ?? 0;
+
+        // If it's the first load, set instantly to avoid long slide-in
+        if (!isDataLoaded) {
+            state.harmonics[i] = h;
+            state.phases[i] = p;
+        }
+
+        state.targetHarmonics[i] = h;
+        state.targetPhases[i] = p;
+    }
+    isDataLoaded = true;
+
+    const timestamp = document.getElementById("last-update");
+    if (timestamp) timestamp.textContent = `LAST SYNC: ${data.marketTime || new Date().toLocaleTimeString()}`;
+}
+
+// History Controls
+let timelineData: any[] = [];
+const historySlider = document.getElementById('history-slider') as HTMLInputElement;
+const timelineLabel = document.getElementById('timeline-label');
+const btnGoLive = document.getElementById('btn-go-live');
+
+async function updateHistoryTimeline() {
+    try {
+        const res = await fetch(`${syncUrl}?action=get-timeline`);
+        if (res.ok) {
+            timelineData = await res.json();
+            if (historySlider && timelineData.length > 0) {
+                historySlider.max = (timelineData.length - 1).toString();
+                historySlider.value = "0"; // Start at latest
+            }
+        }
+    } catch (err) {
+        console.error("Failed to fetch timeline:", err);
+    }
+}
+
+if (historySlider) {
+    historySlider.addEventListener('input', async () => {
+        const idx = parseInt(historySlider.value);
+        const entry = timelineData[idx];
+        if (entry) {
+            if (timelineLabel) timelineLabel.textContent = `Reviewing: ${entry.marketTime}`;
+            if (timelineLabel) timelineLabel.classList.add('text-emerald-400');
+
+            const res = await fetch(`${syncUrl}?action=load-snapshot&id=${entry.id}`);
+            if (res.ok) {
+                const snapshot = await res.json();
+                applyMarketData(snapshot);
+            }
+        }
+    });
+}
+
+if (btnGoLive) {
+    btnGoLive.addEventListener('click', () => {
+        if (timelineLabel) {
+            timelineLabel.textContent = "Live Stream";
+            timelineLabel.classList.remove('text-emerald-400');
+        }
+        loadData();
+    });
+}
+
+// Initial Load
+loadData('volume-delta');
+updateHistoryTimeline();
+
+// Hook up mode buttons
+const modeBtns = document.querySelectorAll('.market-mode-btn');
+modeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode = btn.getAttribute('data-mode');
+        loadData(mode);
+    });
 });
 
 // --- RENDER LOOP ---
@@ -170,30 +273,24 @@ function animate() {
     const delta = timer.getDelta();
     state.timeOffset -= delta * 0.8;
 
-    // Decay beat strength
-    beatStrength *= 0.9;
-    bloomPass.strength = THREE.MathUtils.lerp(bloomPass.strength, 0.6, 0.1);
-    pointLight.intensity = 4 + beatStrength * 10;
-    pointLight2.intensity = 4 + beatStrength * 10;
-
-    const avgEnergy = updateAudioAnalysis();
-    if (avgEnergy > 0) {
-        state.timeOffset -= (avgEnergy / 255) * 0.02;
+    // Smooth Morphing: Lerp current values towards targets
+    const lerpFactor = 0.05; // Adjust for faster/slower transitions
+    for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
+        state.harmonics[i] += (state.targetHarmonics[i] - state.harmonics[i]) * lerpFactor;
+        state.phases[i] += (state.targetPhases[i] - state.phases[i]) * lerpFactor;
     }
 
+    pointLight.intensity = 4;
+    pointLight2.intensity = 4;
+
     if (state.isAutoOrbit) {
-        const speedInput = getOrbitSpeedInput();
-        const radiusInput = getOrbitRadiusInput();
-        const speed = speedInput ? parseFloat(speedInput.value) : 1.0;
-        const radius = radiusInput ? parseFloat(radiusInput.value) : 350;
+        const speed = 0.3; // Slower, more elegant orbit
+        const radius = 450;
         const time = Date.now() * 0.0005 * speed;
         camera.position.x = Math.sin(time) * radius;
         camera.position.z = Math.cos(time) * radius;
         camera.lookAt(0, 0, 0);
     }
-
-    const ssInput = getSphereSizeInput();
-    const globalScale = ssInput ? parseFloat(ssInput.value) : 1.0;
 
     const startX = -xRange / 2;
     const rightX = startX + xRange;
@@ -214,12 +311,11 @@ function animate() {
             const n = i + 1;
             const amp = state.harmonics[i];
             const phi = state.phases[i] || 0;
-            // SYNC: Apply global scale to the wave amplitude so it matches the epicycle spheres
             const waveVal = amp * globalScale * Math.sin(n * phase + phi);
 
             ySum += waveVal;
 
-            const zPosition = state.is2DMode ? zSum : (zHarmonicStart - i * zSpacing);
+            const zPosition = false ? zSum : (zHarmonicStart - i * zSpacing);
             harmonicGeoms[i].attributes.position.setXYZ(pi, x, waveVal, zPosition);
         }
 
@@ -229,80 +325,17 @@ function animate() {
     stardust.rotation.y += 0.0002;
     stardust.rotation.x = Math.sin(state.timeOffset * 0.1) * 0.02;
     stardust.rotation.z = Math.cos(state.timeOffset * 0.1) * 0.02;
-    stardust.visible = !state.is2DMode;
 
-    if (state.is2DMode) {
-        let cx = rightX + 110;
-        let cy = 0;
-        const cz = zSum;
-        const epicyclePhase = state.timeOffset;
-
-        for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
-            if (i < state.NUM_HARMONICS) {
-                const n = i + 1;
-                const amp = state.harmonics[i];
-                const phi = state.phases[i] || 0;
-                const theta = n * epicyclePhase + phi;
-
-                epicycleSpheres[i].visible = true;
-                radiusLines[i].visible = true;
-
-                // VISUAL CONSISTENCY: next center is cx + scaledAmp
-                const scaledAmp = amp * globalScale;
-                epicycleSpheres[i].position.set(cx, cy, cz);
-                const absAmp = Math.max(Math.abs(scaledAmp), 0.001);
-                epicycleSpheres[i].scale.set(absAmp, absAmp, absAmp);
-                epicycleSpheres[i].rotation.x += 0.005 * n;
-                epicycleSpheres[i].rotation.y += 0.008 * n;
-
-                const nextCx = cx + scaledAmp * Math.cos(theta);
-                const nextCy = cy + scaledAmp * Math.sin(theta);
-
-                radiusLines[i].geometry.attributes.position.setXYZ(0, cx, cy, cz);
-                radiusLines[i].geometry.attributes.position.setXYZ(1, nextCx, nextCy, cz);
-                radiusLines[i].geometry.attributes.position.needsUpdate = true;
-
-                epicycleSpheres[i].updateMatrix();
-                radiusLines[i].updateMatrix();
-
-                cx = nextCx;
-                cy = nextCy;
-
-                // Placeholder logic: If amp is effectively 0, show a ghost circle to mark the spot
-                if (Math.abs(amp) < 0.5) {
-                    placeholderCircles[i].visible = true;
-                    placeholderCircles[i].position.set(cx, cy, cz);
-                    placeholderCircles[i].scale.set(6, 6, 6);
-                } else {
-                    placeholderCircles[i].visible = false;
-                }
-            } else {
-                epicycleSpheres[i].visible = false;
-                radiusLines[i].visible = false;
-                placeholderCircles[i].visible = false;
-            }
-        }
-
-        epiConnector.visible = true;
-        epiConnector.geometry.attributes.position.setXYZ(0, cx, cy, zSum);
-        epiConnector.geometry.attributes.position.setXYZ(1, rightX, cy, zSum);
-        epiConnector.geometry.attributes.position.needsUpdate = true;
-
-        connLines.visible = false;
-    } else {
-        for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
-            epicycleSpheres[i].visible = false;
-            radiusLines[i].visible = false;
-            placeholderCircles[i].visible = false;
-        }
-        if (epiConnector) epiConnector.visible = false;
-        connLines.visible = true;
+    for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
+        epicycleSpheres[i].visible = false;
+        radiusLines[i].visible = false;
+        placeholderCircles[i].visible = false;
     }
+    if (epiConnector) epiConnector.visible = false;
+    connLines.visible = true;
 
     for (let i = 0; i < state.NUM_HARMONICS; i++) {
-        if (!state.is2DMode) {
-            harmonicGeoms[i].attributes.position.needsUpdate = true;
-        }
+        harmonicGeoms[i].attributes.position.needsUpdate = true;
     }
     sumGeom.attributes.position.needsUpdate = true;
 
@@ -333,7 +366,6 @@ function animate() {
     composer.render();
 }
 
-setupUI();
 animate();
 
 let resizeTimeout: ReturnType<typeof setTimeout>;
