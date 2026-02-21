@@ -11,7 +11,7 @@ export default defineConfig({
     AstroPWA({
       registerType: "autoUpdate",
       devOptions: {
-        enabled: true,
+        enabled: false,
         navigateFallback: '/flutter_fourier3d/',
         suppressWarnings: true
       },

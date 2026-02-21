@@ -26,7 +26,7 @@ import {
 // --- THREE.JS SETUP ---
 const container = document.getElementById("canvas-container") as HTMLElement;
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x020208, 0.0015);
+scene.fog = new THREE.FogExp2(0x020208, 0.0008); // Reduced fog density for clearer lines
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
 camera.position.set(200, 150, 300);
@@ -45,10 +45,10 @@ controls.target.set(0, 0, 0);
 // --- POST PROCESSING (BLOOM) ---
 const renderScene = new RenderPass(scene, camera);
 const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
-    0.8, // strength
-    0.4, // radius
-    0.6  // threshold
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.6, // Lower base strength
+    0.1, // Much tighter radius for sharper lines
+    0.85 // Higher threshold to only glow the brightest spots
 );
 const composer = new EffectComposer(renderer);
 composer.addPass(renderScene);
@@ -152,7 +152,7 @@ function animate() {
 
     // Decay beat strength
     beatStrength *= 0.9;
-    bloomPass.strength = THREE.MathUtils.lerp(bloomPass.strength, 0.8, 0.1);
+    bloomPass.strength = THREE.MathUtils.lerp(bloomPass.strength, 0.6, 0.1);
     pointLight.intensity = 4 + beatStrength * 10;
     pointLight2.intensity = 4 + beatStrength * 10;
 
@@ -324,6 +324,6 @@ window.addEventListener("resize", () => {
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        bloomPass.resolution.set(window.innerWidth / 2, window.innerHeight / 2);
+        bloomPass.resolution.set(window.innerWidth, window.innerHeight);
     }, 150);
 });

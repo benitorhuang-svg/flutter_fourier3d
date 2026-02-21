@@ -8,14 +8,17 @@
             <button class="preset-btn px-2 py-2 rounded-xl text-[9px] md:text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 border border-white/10 active:scale-95 transition-all font-bold text-slate-300 hover:text-white flex items-center justify-center text-center leading-tight h-10" data-preset="pulse">Pulse</button>
             <button class="preset-btn shrink-0 active px-2 py-2 rounded-xl text-[9px] md:text-[10px] uppercase tracking-widest active:scale-95 transition-all font-bold flex items-center justify-center text-center leading-tight h-10" data-preset="custom">Custom</button>
             
-            <!-- Quantity Box integrated into grid or as a larger last box -->
-            <div class="col-span-1 sm:col-span-1 flex items-center justify-center bg-black/40 rounded-xl border border-white/5 hover:border-white/10 group h-10 px-1">
-                <div class="flex items-center gap-1">
-                    <button id="harmonic-dec" class="w-5 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 active:scale-90 transition-all text-blue-400 text-[10px] font-bold">-</button>
-                    <span id="harmonic-count-display" class="text-[10px] font-mono text-blue-400 w-4 text-center">10</span>
-                    <button id="harmonic-inc" class="w-5 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 active:scale-90 transition-all text-blue-400 text-[10px] font-bold">+</button>
-                    <input type="number" id="harmonic-count-input" value="10" min="1" max="60" class="hidden">
+            <!-- Quantity Box -->
+            <div class="col-span-1 sm:col-span-1 flex items-center justify-center bg-black/40 rounded-xl border border-white/5 hover:border-white/10 group h-10 px-1.5 transition-colors">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[7px] font-bold uppercase text-slate-500 tracking-tighter mr-0.5">Harmonics</span>
+                    <div class="flex items-center gap-0.5">
+                        <button id="harmonic-dec" class="w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 active:scale-90 transition-all text-blue-400 text-[10px] font-bold">-</button>
+                        <span id="harmonic-count-display" class="text-[10px] font-mono text-blue-400 w-4 text-center">10</span>
+                        <button id="harmonic-inc" class="w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 active:scale-90 transition-all text-blue-400 text-[10px] font-bold">+</button>
+                    </div>
                 </div>
+                <input type="number" id="harmonic-count-input" value="10" min="1" max="60" class="hidden">
             </div>
         </div>
     </div>
