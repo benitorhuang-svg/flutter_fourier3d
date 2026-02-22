@@ -10,8 +10,6 @@ import {
     stopMic,
     setupAudioListeners
 } from "../audio";
-import { fetchMarketData } from "../market/api";
-
 // Safe DOM Getter helper
 function getEl<T extends HTMLElement>(id: string): T {
     const el = document.getElementById(id);
@@ -416,19 +414,6 @@ function handlePreset(btn: Element) {
         // We update the targets to trigger smoothing in the render loop
         state.targetHarmonics[i] = val;
         state.targetPhases[i] = 0;
-    }
-
-    if (preset === "market") {
-        btn.innerHTML = `<span class="animate-pulse">Loading...</span>`;
-        fetchMarketData('multi-dim').then(data => {
-            for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
-                state.targetHarmonics[i] = data.harmonics[i] || 0;
-                state.targetPhases[i] = data.phases[i] || 0;
-            }
-            btn.innerHTML = `Market`;
-            updateSlidersUI();
-        });
-        return;
     }
 
     updateSlidersUI();

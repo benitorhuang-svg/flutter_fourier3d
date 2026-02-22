@@ -1,16 +1,14 @@
 ---
 // src/components/NavigationTabs.astro
 interface Props {
-  activeTab: 'home' | 'play_ground' | 'market_fourier' | 'market_data';
+  activeTab: 'home' | 'play_ground';
 }
 
 const { activeTab } = Astro.props;
 
 const tabs = [
   { id: 'home', label: 'Home', href: import.meta.env.BASE_URL },
-  { id: 'play_ground', label: 'Playground', href: `${import.meta.env.BASE_URL}/play_ground`.replace(/\/\//g, '/') },
-  { id: 'market_fourier', label: 'Market Fourier', href: `${import.meta.env.BASE_URL}/market-fourier`.replace(/\/\//g, '/') },
-  { id: 'market_data', label: 'Market Data', href: `${import.meta.env.BASE_URL}/market-data`.replace(/\/\//g, '/') }
+  { id: 'play_ground', label: 'Playground', href: `${import.meta.env.BASE_URL}/play_ground`.replace(/\/\//g, '/') }
 ];
 ---
 
@@ -26,9 +24,7 @@ const tabs = [
     >
       <span class="sm:inline hidden">{tab.label}</span>
       <span class="sm:hidden inline">
-        {tab.id === 'play_ground' ? 'PLAY' : 
-         tab.id === 'market_fourier' ? 'MARKET' : 
-         tab.id === 'market_data' ? 'DATA' : tab.label}
+        {tab.id === 'play_ground' ? 'PLAY' : tab.label}
       </span>
     </a>
   ))}
