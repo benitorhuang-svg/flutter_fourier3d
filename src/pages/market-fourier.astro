@@ -1,43 +1,47 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import TopNav from '../components/TopNav.astro';
 import VisualizerCanvas from '../components/VisualizerCanvas.astro';
 ---
 
 <Layout title="Market Fourier | TAIEX Pro Synthesis" activeTab="market_fourier">
+  <!-- Top Bar: Global Navigation & Actions -->
+  <TopNav activeTab="market_fourier" />
+
   <!-- Background 3D Canvas -->
   <VisualizerCanvas />
 
   <!-- Foreground UI Layer -->
   <main class="absolute inset-0 z-10 flex flex-col pointer-events-none overflow-hidden">
     
-    <!-- Top HUD: Identity and Mode Selection -->
-    <div class="w-full flex justify-between items-start p-6 md:p-10 pt-24 md:pt-28">
+    <!-- Top HUD: Identity and Mode Selection (Shifted down) -->
+    <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-center p-4 md:p-10 pt-28 md:pt-36 gap-4">
       
       <!-- Left: Title & Info -->
       <div class="flex flex-col gap-1 pointer-events-auto">
         <div class="flex items-center gap-3">
-          <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-white drop-shadow-2xl">
+          <h1 class="text-2xl md:text-4xl font-black tracking-tighter text-white drop-shadow-2xl">
             MARKET<span class="text-emerald-500 font-light italic">FOURIER</span>
           </h1>
-          <div class="h-6 w-px bg-white/10 hidden md:block"></div>
+          <div class="h-5 w-px bg-white/10"></div>
           <div class="flex flex-col">
-            <span class="text-[10px] text-emerald-400 font-bold tracking-widest uppercase">TAIEX Level 1</span>
-            <span class="text-[9px] text-slate-500 font-medium uppercase tracking-tight">Real-time Node: Online</span>
+            <span class="text-[9px] text-emerald-400 font-bold tracking-widest uppercase">TAIEX Level 1</span>
+            <span class="text-[8px] text-slate-500 font-medium uppercase tracking-tight">Real-time Node</span>
           </div>
         </div>
       </div>
 
       <!-- Right: Control Deck -->
-      <div class="flex flex-col items-end gap-3 pointer-events-auto">
-        <div class="flex gap-1 p-1 bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl">
-          <button id="mode-vol" class="market-mode-btn active px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all" data-mode="volume-delta">Volume</button>
-          <button id="mode-fft" class="market-mode-btn px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all" data-mode="price-fft">Market Cycle</button>
-          <button id="mode-multi" class="market-mode-btn px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all" data-mode="multi-dim">Hybrid</button>
+      <div class="w-full md:w-auto flex flex-col items-start md:items-end gap-2 pointer-events-auto immersive-hide transition-opacity duration-500">
+        <div class="w-full md:w-auto flex gap-1 p-1 bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-x-auto no-scrollbar">
+          <button id="mode-vol" class="market-mode-btn active px-3 md:px-4 py-2 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap" data-mode="volume-delta">Volume</button>
+          <button id="mode-fft" class="market-mode-btn px-3 md:px-4 py-2 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap" data-mode="price-fft">Market Cycle</button>
+          <button id="mode-multi" class="market-mode-btn px-3 md:px-4 py-2 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap" data-mode="multi-dim">Hybrid</button>
         </div>
         
-        <div class="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/5">
-           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-           <span id="last-update" class="text-[9px] font-mono text-slate-400">SYNCING...</span>
+        <div class="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+           <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+           <span id="last-update" class="text-[8px] font-mono text-slate-400 uppercase">Syncing...</span>
         </div>
       </div>
     </div>
@@ -46,47 +50,47 @@ import VisualizerCanvas from '../components/VisualizerCanvas.astro';
     <div class="flex-grow"></div>
 
     <!-- Bottom HUD Overlay -->
-    <div class="w-full p-6 md:p-10 pb-12 pointer-events-auto flex flex-col md:flex-row justify-between items-end gap-6">
+    <div class="w-full p-4 md:p-10 pb-12 pointer-events-auto flex flex-col md:flex-row justify-between items-end gap-4 md:gap-6">
       
       <!-- Legend/Stats & Timeline -->
-      <div class="flex flex-col gap-4 w-full max-w-xl">
+      <div class="flex flex-col gap-3 md:gap-4 w-full md:max-w-xl immersive-hide transition-opacity duration-500">
         
         <!-- Timeline Slider (Historical Playback) -->
-        <div id="history-panel" class="glass-card !p-5 !rounded-3xl flex flex-col gap-3 pointer-events-auto">
+        <div id="history-panel" class="glass-card !p-4 md:!p-5 !rounded-2xl md:!rounded-3xl flex flex-col gap-2 md:gap-3 pointer-events-auto">
           <div class="flex justify-between items-center">
-            <span class="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">History Review</span>
-            <span id="timeline-label" class="text-[10px] font-mono text-white/60 uppercase">Live Stream</span>
+            <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">History Review</span>
+            <span id="timeline-label" class="text-[9px] font-mono text-white/60 uppercase">Live</span>
           </div>
           <input type="range" id="history-slider" min="0" max="0" value="0" step="1" 
-                 class="w-full h-1.5 appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-all"/>
-          <div class="flex justify-between text-[8px] font-mono text-slate-500 uppercase tracking-tighter">
-            <span>Older Snapshots</span>
-            <button id="btn-go-live" class="hover:text-emerald-400 transition-colors">Return to Live ●</button>
+                 class="w-full h-1 appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-all"/>
+          <div class="flex justify-between text-[7px] md:text-[8px] font-mono text-slate-500 uppercase">
+            <span>Historical</span>
+            <button id="btn-go-live" class="hover:text-emerald-400 transition-colors">Go Live</button>
           </div>
         </div>
 
         <!-- Legend -->
-        <div class="glass-card !p-6 !rounded-[2.5rem] flex flex-col gap-4 shadow-2xl pointer-events-auto">
-          <div class="flex justify-between items-center border-b border-white/5 pb-3">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Spectral Legend</span>
-            <span class="text-[10px] font-mono text-emerald-400">H1 - H60</span>
+        <div class="glass-card !p-4 md:!p-6 !rounded-2xl md:!rounded-[2.5rem] flex flex-col gap-3 md:gap-4 shadow-2xl pointer-events-auto">
+          <div class="flex justify-between items-center border-b border-white/5 pb-2 md:pb-3">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Spectral Legend</span>
+            <span class="text-[9px] font-mono text-emerald-400">H1 - H60</span>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col">
-              <span id="legend-amp-title" class="text-[9px] text-slate-500 uppercase font-black">Wave Height</span>
-              <span id="legend-amp-val" class="text-xs text-white font-mono">Volume Intensity</span>
+          <div class="grid grid-cols-2 gap-3 md:gap-4">
+            <div class="flex flex-col gap-0.5">
+              <span id="legend-amp-title" class="text-[8px] text-slate-500 uppercase font-black">Wave Height</span>
+              <span id="legend-amp-val" class="text-[10px] md:text-xs text-white font-mono">Volume</span>
             </div>
-            <div class="flex flex-col">
-              <span id="legend-phase-title" class="text-[9px] text-slate-500 uppercase font-black">Temporal Shift</span>
-              <span id="legend-phase-val" class="text-xs text-white font-mono">Constant</span>
+            <div class="flex flex-col gap-0.5">
+              <span id="legend-phase-title" class="text-[8px] text-slate-500 uppercase font-black">Temporal Shift</span>
+              <span id="legend-phase-val" class="text-[10px] md:text-xs text-white font-mono">Constant</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Tech Spec -->
-      <div class="hidden xl:flex flex-col gap-3 items-end opacity-40 hover:opacity-100 transition-opacity">
-        <a href="/flutter_fourier3d/market-data" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-bold text-slate-300 hover:text-white transition-all uppercase tracking-widest flex items-center gap-2">
+      <div class="hidden xl:flex flex-col gap-3 items-end opacity-40 hover:opacity-100 transition-opacity immersive-hide">
+        <a href={`${import.meta.env.BASE_URL}/market-data`.replace(/\/\//g, '/')} class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-bold text-slate-300 hover:text-white transition-all uppercase tracking-widest flex items-center gap-2">
            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
            Database Explorer
         </a>
@@ -126,8 +130,8 @@ import VisualizerCanvas from '../components/VisualizerCanvas.astro';
     /* Range Slider Styling Overrides */
     #history-slider {
       height: 6px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
     #history-slider::-webkit-slider-thumb {
       background: var(--color-primary);

@@ -15,5 +15,5 @@
 
 ## 4. 技術願景 (Technical Vision)
 *   **零延遲視覺感**：利用 `BufferGeometry` 更新頂點，確保極致的 60 FPS 流暢度。
-*   **沈浸式體驗**：結合玻璃擬態 (Glassmorphism) UI 與霓虹發光特效 (Post-processing Bloom)。
+*   **全方位 UI 體驗**：結合玻璃擬態 (Glassmorphism) 側邊欄面板與 **深/淺色雙模式 (Hybrid Theme)** 切換，提供不同光學環境下的最佳觀察視野。
 *   **數據驅動**：不只是隨機動畫，而是 100% 由真實數據演算生成的幾何藝術。

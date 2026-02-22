@@ -20,11 +20,11 @@
 
 ## 3. 視覺設計與 UI 共識 (UI/UX Standards)
 
-*   **玻璃擬態 (Glassmorphism)**：使用 `backdrop-blur` 搭配 `bg-white/10` 與 `border-white/20`。
-*   **霓虹色系**：
-    *   主要亮點：`emerald-400` (#34d399)。
-    *   輔助強調：`cyan-400` (#22d3ee) 或 `indigo-400`。
-    *   背景基調：`slate-950` (#020617)。
+*   **玻璃擬態 (Glassmorphism)**：使用 `backdrop-blur` 搭配具備深/淺適配性的玻璃背景。
+    *   **側邊欄控制 (Unified Sidebar)**：所有的模式設定（手動、音訊、劇院）均統一收納於左側垂直面板。
+*   **主題色系**：
+    *   **暗色模式 (Default)**：背景 `slate-950` (#020208)，文字 `emerald-400`。
+    *   **淺色模式**：背景 `slate-50` (#F8FAFC)，文字 `emerald-600`。
 *   **響應式基準**：所有 UI 元件在 mobile (390px 寬) 下必須能正常互動。
 
 ## 4. 決策指引 (Decision Governance)

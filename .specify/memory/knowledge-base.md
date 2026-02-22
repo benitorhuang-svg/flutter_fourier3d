@@ -4,8 +4,8 @@
 *   **疊加公式**：`Total_Y = sum( Harmonic[i].Amplitude * sin( (i+1) * phase + Harmonic[i].Phase ) )`
 *   **時間軸演進**：`phase` 隨 `timeOffset` 變化。每一點的位移根據 `distFromRight / period` 計算，營造出由右向左流動的波感。
 *   **渲染常數**：
-    *   `POINTS_PER_LINE`: 512 (點越多曲線越平滑，但更耗效能)。
-    *   `NUM_HARMONICS`: 1~60 (對應台灣大盤 API 5分鐘分盤的長度)。
+    *   `POINTS_PER_LINE`: 400 (高解析度頂點緩衝區)。
+    *   `NUM_HARMONICS`: 1~60 (預設啟動數量：8)。
 
 ## 2. 市場數據映射規則 (Mapping Strategy)
 
@@ -16,12 +16,12 @@
 | **Multi-Dim** | 成交量強度 | 價格變化率 (Price Diff) 映射至 [-PI, PI] |
 
 ## 3. 渲染優化與視覺參數
-*   **後處理效果 (Post-processing)**:
-    *   `UnrealBloomPass`: `strength = 0.8`, `radius = 0.1`, `threshold = 0.85` (高對比霓虹感)。
-*   **場景特效**:
-    *   `FogExp2`: 密度 `0.0008`，營造深邃空間感。
-    *   `OrbitControls`: 開啟 `enableDamping` 增加操作質感。
-    *   `AutoOrbit`: 攝影機以半徑 `400` 進行自動圓周旋轉，營造觀賞模式。
+*   **環境光效與後處理**:
+    *   **雙色主題切換**: 支援暗色 (#020208) 與淺色 (#F0F4F8) 背景動態切換。
+    *   **場景特效**:
+        *   `FogExp2`: 密度 `0.0008`。
+        *   `OrbitControls`: 開啟 `enableDamping` 增加操作質感。
+        *   `AutoOrbit`: 攝影機以半徑 `350` 進行自動圓周旋轉，營造觀賞模式。
 
 ## 4. API 與 持久化細節
 *   **TWSE API 端點**:

@@ -20,6 +20,7 @@ import {
     connLines,
     connGeom
 } from "./core/geometry";
+import { setupCanvasTap } from "./ui";
 
 // --- THREE.JS SETUP ---
 const container = document.getElementById("canvas-container") as HTMLElement;
@@ -70,25 +71,50 @@ function createCircleTexture() {
 }
 const starTexture = createCircleTexture();
 
-// --- PARTICLES (NEBULA EFFECT) ---
-const particlesGeom = new THREE.BufferGeometry();
-const particlesCount = 2000;
-const posArray = new Float32Array(particlesCount * 3);
-for (let i = 0; i < particlesCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 1200;
-}
-particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-const particlesMaterial = new THREE.PointsMaterial({
-    size: 4.0,
-    map: starTexture,
-    color: 0x10b981, // Emerald green for market
-    transparent: true,
-    opacity: 0.8,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    sizeAttenuation: true
-});
-const stardust = new THREE.Points(particlesGeom, particlesMaterial);
+// --- PARTICLES (PREMIUM STARRY SKY) ---
+const createStarrySky = () => {
+    const particlesGeom = new THREE.BufferGeometry();
+    const count = 5000;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+
+    const color1 = new THREE.Color(0x10b981); // emerald
+    const color2 = new THREE.Color(0x06b6d4); // cyan
+    const color3 = new THREE.Color(0xffffff); // white
+
+    for (let i = 0; i < count; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 2000;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
+
+        const mix = Math.random();
+        let c = color3;
+        if (mix < 0.3) c = color1;
+        else if (mix < 0.6) c = color2;
+
+        colors[i * 3] = c.r;
+        colors[i * 3 + 1] = c.g;
+        colors[i * 3 + 2] = c.b;
+    }
+
+    particlesGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const particlesMaterial = new THREE.PointsMaterial({
+        size: 3.0,
+        map: starTexture,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true
+    });
+
+    return new THREE.Points(particlesGeom, particlesMaterial);
+};
+
+const stardust = createStarrySky();
 scene.add(stardust);
 
 // --- LIGHTS & GRID ---
@@ -366,6 +392,7 @@ function animate() {
     composer.render();
 }
 
+setupCanvasTap();
 animate();
 
 let resizeTimeout: ReturnType<typeof setTimeout>;

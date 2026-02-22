@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import TopNav from '../components/TopNav.astro';
 import { db } from '../db';
 import { marketData } from '../db/schema';
 import { desc } from 'drizzle-orm';
@@ -17,8 +18,11 @@ const getPreview = (jsonStr: string | null) => {
 };
 ---
 
-<Layout title="Database Explorer | Market Data" activeTab="market_data">
-  <main class="min-h-screen pt-28 pb-12 px-4 md:px-8 max-w-7xl mx-auto relative z-10">
+<Layout title="Market Data Explorer | Fourier 3D" activeTab="market_data">
+  <!-- Top Bar: Global Navigation & Actions -->
+  <TopNav activeTab="market_data" />
+
+  <main class="w-full h-full p-4 md:p-8 pt-32 md:pt-40 overflow-y-auto relative z-10 custom-scrollbar">
     
     <div class="mb-10 flex flex-col md:flex-row justify-between items-end gap-6">
       <div class="flex flex-col gap-2">
@@ -194,5 +198,9 @@ const getPreview = (jsonStr: string | null) => {
     background-image: 
       radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
       radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+  }
+
+  tr.hover\:bg-white\/\[0\.03\]:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
   }
 </style>

@@ -1,8 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import TopNav from '../components/TopNav.astro';
 ---
 
 <Layout title="Home | Fourier 3D Synthesis" activeTab="home">
+  <TopNav activeTab="home" />
   <div class="w-full h-full flex flex-col items-center relative bg-slate-950 overflow-y-auto custom-scrollbar">
     
     <!-- Background Ambient Glow -->
@@ -76,6 +78,48 @@ import Layout from '../layouts/Layout.astro';
         <p class="text-sm text-slate-400 leading-relaxed font-light">
           所有同步後的數據都儲存在本地 SQLite 資料庫中。你可以透過 <strong class="text-emerald-400 font-bold uppercase tracking-widest text-[10px]">Market Data</strong> 頁面觀察原始參數，或將數據導出為 JSON 格式供進階研究使用。
         </p>
+      </section>
+
+      <!-- Section 5: Keyboard Shortcuts -->
+      <section class="md:col-span-2 glass-card !p-8 !rounded-[2.5rem] flex flex-col gap-6 group hover:border-purple-500/30 transition-all duration-500 mt-4">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-black text-white tracking-tight">鍵盤快捷鍵清單 (Keyboard Shortcuts)</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="flex flex-col gap-3">
+            <h4 class="text-[10px] uppercase tracking-[0.2em] text-purple-400 font-black">模式切換</h4>
+            <ul class="text-sm text-slate-400 flex flex-col gap-2 font-light">
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>手動合成模式</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">1</kbd></li>
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>音頻分析模式</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">2</kbd></li>
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>自動鏡頭模式</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">3</kbd></li>
+            </ul>
+          </div>
+          
+          <div class="flex flex-col gap-3">
+            <h4 class="text-[10px] uppercase tracking-[0.2em] text-cyan-400 font-black">視圖控制</h4>
+            <ul class="text-sm text-slate-400 flex flex-col gap-2 font-light">
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>2D / 3D 視角切換</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">Space</kbd></li>
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>重置相機位置</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">R</kbd></li>
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>自動繞軌開關</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">O</kbd></li>
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>全螢幕模式</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">F</kbd></li>
+            </ul>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <h4 class="text-[10px] uppercase tracking-[0.2em] text-emerald-400 font-black">介面輔助</h4>
+            <ul class="text-sm text-slate-400 flex flex-col gap-2 font-light">
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>沉浸模式 (隱藏 UI)</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">I</kbd></li>
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>顯示/隱藏 面板</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">S</kbd></li>
+              <li class="flex justify-between border-b border-white/5 pb-1"><span>增/減 諧波數量</span> <kbd class="px-2 py-0.5 bg-white/10 rounded text-xs font-mono text-white">+ / -</kbd></li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       <!-- Quick Actions -->

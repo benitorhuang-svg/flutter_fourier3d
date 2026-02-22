@@ -20,7 +20,6 @@ export const events = new EventEmitter();
 export const UI_EVENTS = {
     MODE_SWITCH: 'ui:mode_switch',
     TOGGLE_2D: 'ui:toggle_2d',
-    TOGGLE_BLOOM: 'ui:toggle_bloom',
     RESET_CAMERA: 'ui:reset_camera',
     HARMONIC_CHANGE: 'ui:harmonic_change',
     MARKET_DATA_LOADED: 'market:data_loaded'
