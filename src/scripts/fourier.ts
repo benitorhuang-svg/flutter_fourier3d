@@ -16,8 +16,9 @@ import {
     harmonicGeoms,
     sumGeom,
     epicycleSpheres,
-    radiusLines,
     placeholderCircles,
+    radiusLines,
+    radiusLinesGeom,
     epiConnector,
     connLines,
     connGeom
@@ -246,6 +247,10 @@ document.addEventListener("visibilitychange", () => {
 
 // --- RENDER LOOP ---
 const timer = new THREE.Timer();
+const dummyObj = new THREE.Object3D();
+const offscreenObj = new THREE.Object3D();
+offscreenObj.position.set(0, 0, -5000);
+offscreenObj.updateMatrix();
 
 function animate() {
     if (!isPageVisible) {
@@ -294,49 +299,42 @@ function animate() {
 
     const startX = -xRange / 2;
     const rightX = startX + xRange;
-    const dx = xRange / (CONSTANTS.POINTS_PER_LINE - 1);
     const period = xRange * 0.4;
 
     const zSum = 50;
     const zHarmonicStart = zSum - 50;
 
-    // Pre-cache arrays for direct access (Massive performance boost)
+    const activeCount = state.get().NUM_HARMONICS;
+    const is2D = state.get().is2DMode;
+    const dx = xRange / (CONSTANTS.POINTS_PER_LINE - 1);
+
+    // ── CPU PATH: LUT-accelerated wave computation (only writes Y) ──
     const sumArr = sumGeom.attributes.position.array as Float32Array;
-    const harmonicArrs = state.get().NUM_HARMONICS > 0 ? harmonicGeoms.slice(0, state.get().NUM_HARMONICS).map(g => g.attributes.position.array as Float32Array) : [];
+    const harmonicArrs = !is2D && activeCount > 0
+        ? harmonicGeoms.slice(0, activeCount).map(g => g.attributes.position.array as Float32Array)
+        : [];
 
     for (let pi = 0; pi < CONSTANTS.POINTS_PER_LINE; pi++) {
         const x = startX + pi * dx;
         const distFromRight = rightX - x;
-        const phase = (distFromRight / period) * Math.PI * 2 + renderState.timeOffset;
+        const phase = (distFromRight / period) * PI2 + renderState.timeOffset;
 
         let ySum = 0;
-        const pi3 = pi * 3;
+        const pi3_y = pi * 3 + 1;
 
-        for (let i = 0; i < state.get().NUM_HARMONICS; i++) {
+        for (let i = 0; i < activeCount; i++) {
             const n = i + 1;
             const amp = renderState.harmonics[i];
             const phi = renderState.phases[i] || 0;
             const waveVal = amp * globalScale * fastSin(n * phase + phi);
-
             ySum += waveVal;
-
-            if (!state.get().is2DMode) {
-                const arr = harmonicArrs[i];
-                const zPosition = zHarmonicStart - i * zSpacing;
-                arr[pi3] = x;
-                arr[pi3 + 1] = waveVal;
-                arr[pi3 + 2] = zPosition;
-            }
+            if (!is2D) { harmonicArrs[i][pi3_y] = waveVal; }
         }
-
-        sumArr[pi3] = x;
-        sumArr[pi3 + 1] = ySum;
-        sumArr[pi3 + 2] = zSum;
+        sumArr[pi3_y] = ySum;
     }
 
-    // Flag for update once per buffer
-    if (!state.get().is2DMode) {
-        for (let i = 0; i < state.get().NUM_HARMONICS; i++) {
+    if (!is2D) {
+        for (let i = 0; i < activeCount; i++) {
             harmonicGeoms[i].attributes.position.needsUpdate = true;
         }
     }
@@ -354,6 +352,8 @@ function animate() {
         const cz = zSum;
         const epicyclePhase = renderState.timeOffset;
 
+        const radiPosArr = radiusLinesGeom.attributes.position.array as Float32Array;
+
         for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
             if (i < state.get().NUM_HARMONICS) {
                 const n = i + 1;
@@ -361,44 +361,55 @@ function animate() {
                 const phi = renderState.phases[i] || 0;
                 const theta = n * epicyclePhase + phi;
 
-                epicycleSpheres[i].visible = true;
-                radiusLines[i].visible = true;
-
-                // VISUAL CONSISTENCY: next center is cx + scaledAmp
                 const scaledAmp = amp * globalScale;
-                epicycleSpheres[i].position.set(cx, cy, cz);
                 const absAmp = Math.max(Math.abs(scaledAmp), 0.001);
-                epicycleSpheres[i].scale.set(absAmp, absAmp, absAmp);
-                epicycleSpheres[i].rotation.x += 0.005 * n;
-                epicycleSpheres[i].rotation.y += 0.008 * n;
+
+                // Update Sphere Instance
+                dummyObj.position.set(cx, cy, cz);
+                dummyObj.scale.set(absAmp, absAmp, absAmp);
+                // Pseudo-rotation for interest
+                dummyObj.rotation.x = renderState.timeOffset * 0.3 * n;
+                dummyObj.rotation.y = renderState.timeOffset * 0.5 * n;
+                dummyObj.updateMatrix();
+                epicycleSpheres.setMatrixAt(i, dummyObj.matrix);
 
                 const nextCx = cx + scaledAmp * fastCos(theta);
                 const nextCy = cy + scaledAmp * fastSin(theta);
 
-                radiusLines[i].geometry.attributes.position.setXYZ(0, cx, cy, cz);
-                radiusLines[i].geometry.attributes.position.setXYZ(1, nextCx, nextCy, cz);
-                radiusLines[i].geometry.attributes.position.needsUpdate = true;
-
-                epicycleSpheres[i].updateMatrix();
-                radiusLines[i].updateMatrix();
+                // Update Radius Line Segment
+                const vIdx = i * 6;
+                radiPosArr[vIdx] = cx; radiPosArr[vIdx + 1] = cy; radiPosArr[vIdx + 2] = cz;
+                radiPosArr[vIdx + 3] = nextCx; radiPosArr[vIdx + 4] = nextCy; radiPosArr[vIdx + 5] = cz;
 
                 cx = nextCx;
                 cy = nextCy;
 
-                // Placeholder logic: If amp is effectively 0, show a ghost circle to mark the spot
+                // Update Placeholder Instance
                 if (Math.abs(amp) < 0.5) {
-                    placeholderCircles[i].visible = true;
-                    placeholderCircles[i].position.set(cx, cy, cz);
-                    placeholderCircles[i].scale.set(6, 6, 6);
+                    dummyObj.position.set(cx, cy, cz);
+                    dummyObj.scale.set(6, 6, 6);
+                    dummyObj.rotation.set(0, 0, 0);
+                    dummyObj.updateMatrix();
+                    placeholderCircles.setMatrixAt(i, dummyObj.matrix);
                 } else {
-                    placeholderCircles[i].visible = false;
+                    placeholderCircles.setMatrixAt(i, offscreenObj.matrix);
                 }
             } else {
-                epicycleSpheres[i].visible = false;
-                radiusLines[i].visible = false;
-                placeholderCircles[i].visible = false;
+                epicycleSpheres.setMatrixAt(i, offscreenObj.matrix);
+                placeholderCircles.setMatrixAt(i, offscreenObj.matrix);
+                const vIdx = i * 6;
+                radiPosArr[vIdx] = 0; radiPosArr[vIdx + 1] = 0; radiPosArr[vIdx + 2] = -5000;
+                radiPosArr[vIdx + 3] = 0; radiPosArr[vIdx + 4] = 0; radiPosArr[vIdx + 5] = -5000;
             }
         }
+
+        epicycleSpheres.instanceMatrix.needsUpdate = true;
+        placeholderCircles.instanceMatrix.needsUpdate = true;
+        radiusLinesGeom.attributes.position.needsUpdate = true;
+
+        epicycleSpheres.visible = true;
+        placeholderCircles.visible = true;
+        radiusLines.visible = true;
 
         epiConnector.visible = true;
         epiConnector.geometry.attributes.position.setXYZ(0, cx, cy, zSum);
@@ -407,11 +418,9 @@ function animate() {
 
         connLines.visible = false;
     } else {
-        for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
-            epicycleSpheres[i].visible = false;
-            radiusLines[i].visible = false;
-            placeholderCircles[i].visible = false;
-        }
+        epicycleSpheres.visible = false;
+        placeholderCircles.visible = false;
+        radiusLines.visible = false;
         if (epiConnector) epiConnector.visible = false;
         connLines.visible = true;
     }
@@ -419,7 +428,7 @@ function animate() {
     // Updated above in main loop for performance
 
     const sliceIndex = Math.floor(CONSTANTS.POINTS_PER_LINE / 2);
-    const sliceX = startX + sliceIndex * dx;
+    const sliceX = startX + sliceIndex * (xRange / (CONSTANTS.POINTS_PER_LINE - 1));
 
     const connArr = connGeom.attributes.position.array as Float32Array;
     for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
@@ -469,6 +478,6 @@ window.addEventListener("resize", () => {
         const resX = (window.innerWidth * nextPixelRatio) / 2;
         const resY = (window.innerHeight * nextPixelRatio) / 2;
         bloomPass.resolution.set(resX, resY);
-        syncCamera(); // Recalculate 2D distance for mobile portrait/landscape
+        syncCamera();
     }, 150);
 });

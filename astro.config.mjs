@@ -80,7 +80,8 @@ export default defineConfig({
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('three')) return 'three';
+              if (id.includes('three/examples') || id.includes('three/addons')) return 'three-addons';
+              if (id.includes('three')) return 'three-core';
               if (id.includes('nanostores')) return 'nanostores';
               return 'vendor';
             }

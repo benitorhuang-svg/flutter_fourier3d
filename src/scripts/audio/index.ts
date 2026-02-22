@@ -56,8 +56,18 @@ export function initAudio() {
     analyzer.fftSize = 128;
     const bufferLength = analyzer.frequencyBinCount;
     dataArray = new Float32Array(bufferLength);
+
+    // DynamicsCompressor: normalizes loud/quiet passages for consistent visualization
+    const compressor = audioCtx.createDynamicsCompressor();
+    compressor.threshold.setValueAtTime(-50, audioCtx.currentTime);
+    compressor.knee.setValueAtTime(40, audioCtx.currentTime);
+    compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+    compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+    compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
     audioSource = audioCtx.createMediaElementSource(player);
-    audioSource.connect(analyzer);
+    audioSource.connect(compressor);
+    compressor.connect(analyzer);
     analyzer.connect(audioCtx.destination);
 }
 
