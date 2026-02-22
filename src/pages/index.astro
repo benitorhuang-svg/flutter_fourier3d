@@ -19,7 +19,7 @@ import TopNav from '../components/TopNav.astro';
         FOURIER<span class="text-premium">3D</span>
       </h1>
       <p class="text-slate-500 text-[10px] md:text-xs uppercase tracking-[0.5em] font-medium opacity-60">
-        Harmonic Market Guide // FAQ
+        Harmonic Synthesis Guide // FAQ
       </p>
     </header>
 
@@ -35,50 +35,24 @@ import TopNav from '../components/TopNav.astro';
         </div>
         <h3 class="text-xl font-black text-white tracking-tight">什麼是 Fourier 3D？</h3>
         <p class="text-sm text-slate-400 leading-relaxed font-light">
-          這是一個實驗性的金融數據視覺化平台。我們利用「離散傅立葉轉換 (DFT)」技術，將混沌的股票市場價格與成交量分解為數十條具有規律性的諧波 (Harmonics)，讓你能從頻譜的角度觀察市場的情緒與週期。
+          這是一個三維頻譜合成平台。我們利用「傅立葉轉換 (Fourier Transform)」原理，將複雜的波形分解為基礎的諧波 (Harmonics)。您可以透過手動調整、音頻分析或自動化模式，觀察純粹的數學幾何之美。
         </p>
       </section>
 
-      <!-- FAQ Section 2: Data Modes -->
-      <section class="glass-card !p-8 !rounded-[2.5rem] flex flex-col gap-4 group hover:border-cyan-500/30 transition-all duration-500">
-        <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 mb-2">
+      <!-- FAQ Section 2: Audio Analysis -->
+      <section class="glass-card !p-8 !rounded-[2.5rem] flex flex-col gap-4 group hover:border-purple-500/30 transition-all duration-500">
+        <div class="w-10 h-10 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 mb-2">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
           </svg>
         </div>
-        <h3 class="text-xl font-black text-white tracking-tight">視覺化模式說明</h3>
-        <ul class="text-sm text-slate-400 flex flex-col gap-3 font-light">
-          <li class="flex gap-2"><span class="text-emerald-500 font-bold">● Volume:</span> 將 5 分鐘內的成交量動能映射至波形高度。</li>
-          <li class="flex gap-2"><span class="text-cyan-500 font-bold">● Market Cycle:</span> 對價格序列進行頻譜解析，展現市場主要震盪週期。</li>
-          <li class="flex gap-2"><span class="text-indigo-500 font-bold">● Hybrid:</span> 結合成交量與價格變化的多維度合成視圖。</li>
-        </ul>
-      </section>
-
-      <!-- FAQ Section 3: Timeline Explorer -->
-      <section class="glass-card !p-8 !rounded-[2.5rem] flex flex-col gap-4 group hover:border-emerald-500/30 transition-all duration-500">
-        <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h3 class="text-xl font-black text-white tracking-tight">如何回溯歷史數據？</h3>
+        <h3 class="text-xl font-black text-white tracking-tight">音頻實時分析</h3>
         <p class="text-sm text-slate-400 leading-relaxed font-light">
-          進入視覺化頁面後，底部設有 <strong class="text-emerald-400">History Review</strong> 滑桿。拖動它即可載入資料庫中的快照。我們實作了 <strong class="text-white italic">Smooth Morphing</strong> 技術，讓波形在切換時間點時會平滑地變形。
+          在 Audio Mode 下，系統會即時擷取音頻頻譜並將其轉換為 3D 諧波軌跡。您可以選擇預設電台或使用麥克風，觀察不同音訊如何驅動複雜的幾何變體。
         </p>
       </section>
 
-      <!-- FAQ Section 4: Data Persistence -->
-      <section class="glass-card !p-8 !rounded-[2.5rem] flex flex-col gap-4 group hover:border-cyan-500/30 transition-all duration-500">
-        <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 mb-2">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-          </svg>
-        </div>
-        <h3 class="text-xl font-black text-white tracking-tight">數據庫與導出</h3>
-        <p class="text-sm text-slate-400 leading-relaxed font-light">
-          所有同步後的數據都儲存在本地 SQLite 資料庫中。你可以透過 <strong class="text-emerald-400 font-bold uppercase tracking-widest text-[10px]">Market Data</strong> 頁面觀察原始參數，或將數據導出為 JSON 格式供進階研究使用。
-        </p>
-      </section>
+
 
       <!-- Section 5: Keyboard Shortcuts -->
       <section class="md:col-span-2 glass-card !p-8 !rounded-[2.5rem] flex flex-col gap-6 group hover:border-purple-500/30 transition-all duration-500 mt-4">
@@ -124,7 +98,7 @@ import TopNav from '../components/TopNav.astro';
 
       <!-- Quick Actions -->
       <div class="md:col-span-2 flex justify-center gap-6 mt-12">
-        <a href={`${import.meta.env.BASE_URL}/market-fourier`.replace(/\/\//g, '/')} 
+        <a href={`${import.meta.env.BASE_URL}/play_ground`.replace(/\/\//g, '/')} 
            class="group relative px-12 py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.3em] text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
            <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-cyan-600"></div>
            <div class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-emerald-500 to-cyan-500 transition-opacity"></div>

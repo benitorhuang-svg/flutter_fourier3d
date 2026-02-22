@@ -7,9 +7,7 @@ const { activeTab } = Astro.props;
 
 const tabs = [
   { id: 'home', label: 'HOME', href: import.meta.env.BASE_URL },
-  { id: 'play_ground', label: 'PLAY', href: `${import.meta.env.BASE_URL}/play_ground`.replace(/\/\//g, '/') },
-  { id: 'market_fourier', label: 'MARKET', href: `${import.meta.env.BASE_URL}/market-fourier`.replace(/\/\//g, '/') },
-  { id: 'market_data', label: 'DATA', href: `${import.meta.env.BASE_URL}/market-data`.replace(/\/\//g, '/') }
+  { id: 'play_ground', label: 'FOURIER', href: `${import.meta.env.BASE_URL}/play_ground`.replace(/\/\//g, '/') }
 ];
 ---
 
