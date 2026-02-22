@@ -138,7 +138,7 @@ export function updateHarmonicVisibility() {
     for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
         if (harmonicLines[i]) {
             // Only show in 3D mode AND if index is within current num harmonics
-            harmonicLines[i].visible = !state.is2DMode && (i < state.NUM_HARMONICS);
+            harmonicLines[i].visible = !state.get().is2DMode && (i < state.get().NUM_HARMONICS);
         }
     }
 }

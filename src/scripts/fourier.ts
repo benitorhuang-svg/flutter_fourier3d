@@ -4,7 +4,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-import { CONSTANTS, state } from "./core/state";
+import { CONSTANTS, state, renderState } from "./core/state";
 import { events, UI_EVENTS, AUDIO_EVENTS } from "./core/events";
 import { updateAudioAnalysis } from "./audio";
 import { setupUI, getOrbitSpeedInput, getOrbitRadiusInput, getSphereSizeInput } from "./ui";
@@ -149,7 +149,7 @@ updateHarmonicVisibility();
 // --- EVENT HANDLERS ---
 // --- RESPONSIVE CAMERA HELPERS ---
 function syncCamera() {
-    if (state.is2DMode) {
+    if (state.get().is2DMode) {
         const aspect = window.innerWidth / window.innerHeight;
         // The span we want to show is roughly from startX (-300) to epicycle area (+550)
         // Total span ~850-900.
@@ -179,10 +179,10 @@ function syncCamera() {
 }
 
 events.on(UI_EVENTS.TOGGLE_2D, (is2D) => {
-    state.is2DMode = is2D;
+    state.setKey('is2DMode', is2D);
     syncCamera();
     gridHelper.visible = !is2D;
-    if (is2D) state.isAutoOrbit = false;
+    if (is2D) state.setKey('isAutoOrbit', false);
     updateHarmonicVisibility();
 });
 
@@ -214,7 +214,7 @@ function animate() {
 
     timer.update();
     const delta = timer.getDelta();
-    state.timeOffset -= delta * 0.8;
+    renderState.timeOffset -= delta * 0.8;
 
     // Decay beat strength
     beatStrength *= 0.9;
@@ -224,17 +224,17 @@ function animate() {
 
     const avgEnergy = updateAudioAnalysis();
     if (avgEnergy > 0) {
-        state.timeOffset -= (avgEnergy / 255) * 0.02;
+        renderState.timeOffset -= (avgEnergy / 255) * 0.02;
     }
 
     // Smooth Morphing: Lerp current values towards targets
     const lerpFactor = 0.06;
     for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
-        state.harmonics[i] += (state.targetHarmonics[i] - state.harmonics[i]) * lerpFactor;
-        state.phases[i] += (state.targetPhases[i] - state.phases[i]) * lerpFactor;
+        renderState.harmonics[i] += (renderState.targetHarmonics[i] - renderState.harmonics[i]) * lerpFactor;
+        renderState.phases[i] += (renderState.targetPhases[i] - renderState.phases[i]) * lerpFactor;
     }
 
-    if (state.isAutoOrbit) {
+    if (state.get().isAutoOrbit) {
         const speedInput = getOrbitSpeedInput();
         const radiusInput = getOrbitRadiusInput();
         const speed = speedInput ? parseFloat(speedInput.value) : 1.0;
@@ -258,25 +258,25 @@ function animate() {
 
     // Pre-cache arrays for direct access (Massive performance boost)
     const sumArr = sumGeom.attributes.position.array as Float32Array;
-    const harmonicArrs = state.NUM_HARMONICS > 0 ? harmonicGeoms.slice(0, state.NUM_HARMONICS).map(g => g.attributes.position.array as Float32Array) : [];
+    const harmonicArrs = state.get().NUM_HARMONICS > 0 ? harmonicGeoms.slice(0, state.get().NUM_HARMONICS).map(g => g.attributes.position.array as Float32Array) : [];
 
     for (let pi = 0; pi < CONSTANTS.POINTS_PER_LINE; pi++) {
         const x = startX + pi * dx;
         const distFromRight = rightX - x;
-        const phase = (distFromRight / period) * Math.PI * 2 + state.timeOffset;
+        const phase = (distFromRight / period) * Math.PI * 2 + renderState.timeOffset;
 
         let ySum = 0;
         const pi3 = pi * 3;
 
-        for (let i = 0; i < state.NUM_HARMONICS; i++) {
+        for (let i = 0; i < state.get().NUM_HARMONICS; i++) {
             const n = i + 1;
-            const amp = state.harmonics[i];
-            const phi = state.phases[i] || 0;
+            const amp = renderState.harmonics[i];
+            const phi = renderState.phases[i] || 0;
             const waveVal = amp * globalScale * Math.sin(n * phase + phi);
 
             ySum += waveVal;
 
-            if (!state.is2DMode) {
+            if (!state.get().is2DMode) {
                 const arr = harmonicArrs[i];
                 const zPosition = zHarmonicStart - i * zSpacing;
                 arr[pi3] = x;
@@ -291,30 +291,30 @@ function animate() {
     }
 
     // Flag for update once per buffer
-    if (!state.is2DMode) {
-        for (let i = 0; i < state.NUM_HARMONICS; i++) {
+    if (!state.get().is2DMode) {
+        for (let i = 0; i < state.get().NUM_HARMONICS; i++) {
             harmonicGeoms[i].attributes.position.needsUpdate = true;
         }
     }
     sumGeom.attributes.position.needsUpdate = true;
 
     stardust.rotation.y += 0.0001; // subtle rotation
-    stardust.rotation.x = Math.sin(state.timeOffset * 0.05) * 0.01;
+    stardust.rotation.x = Math.sin(renderState.timeOffset * 0.05) * 0.01;
     stardust.visible = true; // Always visible for premium feel
 
-    if (state.is2DMode) {
+    if (state.get().is2DMode) {
         // Dynamic Offset for Mobile: epicycles closer to wave to save horizontal space
         const epicycleOffsetX = window.innerWidth < 768 ? 60 : 110;
         let cx = rightX + epicycleOffsetX;
         let cy = 0;
         const cz = zSum;
-        const epicyclePhase = state.timeOffset;
+        const epicyclePhase = renderState.timeOffset;
 
         for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
-            if (i < state.NUM_HARMONICS) {
+            if (i < state.get().NUM_HARMONICS) {
                 const n = i + 1;
-                const amp = state.harmonics[i];
-                const phi = state.phases[i] || 0;
+                const amp = renderState.harmonics[i];
+                const phi = renderState.phases[i] || 0;
                 const theta = n * epicyclePhase + phi;
 
                 epicycleSpheres[i].visible = true;
@@ -380,12 +380,12 @@ function animate() {
     const connArr = connGeom.attributes.position.array as Float32Array;
     for (let i = 0; i < CONSTANTS.MAX_HARMONICS; i++) {
         const idx6 = i * 6; // i * 2 points * 3 coords
-        if (i < state.NUM_HARMONICS) {
+        if (i < state.get().NUM_HARMONICS) {
             const n = i + 1;
             const distFromRight = rightX - sliceX;
-            const phase = (distFromRight / period) * Math.PI * 2 + state.timeOffset;
-            const amp = state.harmonics[i];
-            const phi = state.phases[i] || 0;
+            const phase = (distFromRight / period) * Math.PI * 2 + renderState.timeOffset;
+            const amp = renderState.harmonics[i];
+            const phi = renderState.phases[i] || 0;
             const waveVal = amp * Math.sin(n * phase + phi);
 
             const zPosition = zHarmonicStart - i * zSpacing;

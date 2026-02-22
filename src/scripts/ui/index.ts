@@ -1,4 +1,4 @@
-import { state, CONSTANTS } from "../core/state";
+import { state, renderState, CONSTANTS } from "../core/state";
 import { events, UI_EVENTS } from "../core/events";
 import {
     getAudioPlayer,
@@ -48,7 +48,7 @@ export function setupCanvasTap() {
         // If move is small and duration is short, it's a tap
         if (diffX < 10 && diffY < 10 && duration < 300) {
             const player = getAudioPlayer();
-            if (state.isRadioMode && currentStationUrl !== "mic" && player?.paused) {
+            if (state.get().isRadioMode && currentStationUrl !== "mic" && player?.paused) {
                 player.play().then(() => {
                     const np = getNowPlaying();
                     if (np) np.classList.add("hidden");
@@ -100,9 +100,9 @@ export function setupUI() {
     // Sub-buttons
     btnAutoOrbit?.addEventListener("click", (e) => {
         e.stopPropagation();
-        state.isAutoOrbit = !state.isAutoOrbit;
-        btnAutoOrbit.classList.toggle("active", state.isAutoOrbit);
-        if (state.isAutoOrbit) {
+        state.setKey('isAutoOrbit', !state.get().isAutoOrbit);
+        btnAutoOrbit.classList.toggle("active", state.get().isAutoOrbit);
+        if (state.get().isAutoOrbit) {
             switchMode("auto");
             toggleSettingsPanel(true);
         }
@@ -128,9 +128,9 @@ export function setupUI() {
     });
 
     nav2D?.addEventListener("click", () => {
-        state.is2DMode = !state.is2DMode;
-        nav2D.classList.toggle("active", state.is2DMode);
-        events.emit(UI_EVENTS.TOGGLE_2D, state.is2DMode);
+        state.setKey('is2DMode', !state.get().is2DMode);
+        nav2D.classList.toggle("active", state.get().is2DMode);
+        events.emit(UI_EVENTS.TOGGLE_2D, state.get().is2DMode);
     });
 
     if (btnResetCam) {
@@ -143,7 +143,7 @@ export function setupUI() {
         if (isNaN(count)) return;
         if (count < 1) count = 1;
         if (count > CONSTANTS.MAX_HARMONICS) count = CONSTANTS.MAX_HARMONICS;
-        state.NUM_HARMONICS = count;
+        state.setKey('NUM_HARMONICS', count);
         events.emit(UI_EVENTS.HARMONIC_CHANGE, count);
         createSliders();
     });
@@ -188,10 +188,10 @@ export function setupUI() {
 
     // Harmonics Step Buttons (Using Event Delegation for HMR robustness)
     const updateHarmonics = (delta: number) => {
-        let count = state.NUM_HARMONICS + delta;
+        let count = state.get().NUM_HARMONICS + delta;
         if (count < 1) count = 1;
         if (count > CONSTANTS.MAX_HARMONICS) count = CONSTANTS.MAX_HARMONICS;
-        state.NUM_HARMONICS = count;
+        state.setKey('NUM_HARMONICS', count);
 
         const display = document.getElementById("harmonic-count-display");
         if (display) display.textContent = count.toString();
@@ -235,6 +235,9 @@ function setupKeyboardShortcuts() {
             return;
         }
 
+        // Prevent hold-down spamming for crisp toggles
+        if (e.repeat) return;
+
         const key = e.key.toLowerCase();
 
         // 1. Modes
@@ -247,9 +250,9 @@ function setupKeyboardShortcuts() {
             e.preventDefault();
             const btn2d = document.getElementById("nav-2d");
             if (btn2d) {
-                state.is2DMode = !state.is2DMode;
-                btn2d.classList.toggle("active", state.is2DMode);
-                events.emit(UI_EVENTS.TOGGLE_2D, state.is2DMode);
+                state.setKey('is2DMode', !state.get().is2DMode);
+                btn2d.classList.toggle("active", state.get().is2DMode);
+                events.emit(UI_EVENTS.TOGGLE_2D, state.get().is2DMode);
             }
         }
         if (key === "r") {
@@ -258,8 +261,8 @@ function setupKeyboardShortcuts() {
         if (key === "o") {
             const btnAutoOrbit = document.getElementById("btn-auto-orbit");
             if (btnAutoOrbit) {
-                state.isAutoOrbit = !state.isAutoOrbit;
-                btnAutoOrbit.classList.toggle("active", state.isAutoOrbit);
+                state.setKey('isAutoOrbit', !state.get().isAutoOrbit);
+                btnAutoOrbit.classList.toggle("active", state.get().isAutoOrbit);
             }
         }
         if (key === "i") {
@@ -289,17 +292,17 @@ function setupKeyboardShortcuts() {
 }
 
 export function toggleImmersive(force?: boolean) {
-    if (force !== undefined) state.isImmersiveMode = force;
-    else state.isImmersiveMode = !state.isImmersiveMode;
+    if (force !== undefined) state.setKey('isImmersiveMode', force);
+    else state.setKey('isImmersiveMode', !state.get().isImmersiveMode);
 
     const btnImmersive = document.getElementById("btn-immersive");
     const topHeader = document.getElementById("top-header");
     const cameraGuide = document.getElementById("camera-guide");
     const immersiveHideEls = document.querySelectorAll(".immersive-hide");
 
-    if (btnImmersive) btnImmersive.classList.toggle("active", state.isImmersiveMode);
+    if (btnImmersive) btnImmersive.classList.toggle("active", state.get().isImmersiveMode);
 
-    if (state.isImmersiveMode) {
+    if (state.get().isImmersiveMode) {
         topHeader?.classList.add("opacity-0", "pointer-events-none");
         cameraGuide?.classList.add("hidden");
         immersiveHideEls.forEach(el => el.classList.add("opacity-0", "pointer-events-none"));
@@ -340,7 +343,7 @@ function toggleSettingsPanel(forceShow?: boolean) {
 
 export function switchMode(target: "manual" | "audio" | "auto") {
     currentUIMode = target;
-    state.isRadioMode = (target === "audio");
+    state.setKey('isRadioMode', (target === "audio"));
 
     const panels = [
         document.getElementById("panel-manual"),
@@ -373,7 +376,7 @@ export function switchMode(target: "manual" | "audio" | "auto") {
         stopMic();
         player?.pause();
         if (target === "auto") {
-            state.isAutoOrbit = true;
+            state.setKey('isAutoOrbit', true);
             document.getElementById("btn-auto-orbit")?.classList.add("active");
         }
         nowPlaying?.classList.add("hidden");
@@ -412,8 +415,8 @@ function handlePreset(btn: Element) {
         }
 
         // We update the targets to trigger smoothing in the render loop
-        state.targetHarmonics[i] = val;
-        state.targetPhases[i] = 0;
+        renderState.targetHarmonics[i] = val;
+        renderState.targetPhases[i] = 0;
     }
 
     updateSlidersUI();
@@ -435,7 +438,7 @@ export function createSliders() {
     // Clear old event listeners by cloning if necessary (or just reusing standard assignment)
     // Actually, simple reassignment of oninput is fine.
 
-    if (activeHarmonicIndex >= state.NUM_HARMONICS) {
+    if (activeHarmonicIndex >= state.get().NUM_HARMONICS) {
         activeHarmonicIndex = 0;
     }
 
@@ -443,11 +446,11 @@ export function createSliders() {
 
     const updateMasterView = () => {
         if (!masterAmp || !masterPhi) return;
-        masterAmp.value = state.harmonics[activeHarmonicIndex].toString();
-        masterPhi.value = state.phases[activeHarmonicIndex].toString();
+        masterAmp.value = renderState.harmonics[activeHarmonicIndex].toString();
+        masterPhi.value = renderState.phases[activeHarmonicIndex].toString();
 
-        if (masterAmpVal) masterAmpVal.textContent = state.harmonics[activeHarmonicIndex].toFixed(0);
-        if (masterPhiVal) masterPhiVal.textContent = (state.phases[activeHarmonicIndex] / Math.PI).toFixed(1);
+        if (masterAmpVal) masterAmpVal.textContent = renderState.harmonics[activeHarmonicIndex].toFixed(0);
+        if (masterPhiVal) masterPhiVal.textContent = (renderState.phases[activeHarmonicIndex] / Math.PI).toFixed(1);
         if (activeLabel) activeLabel.textContent = `H${activeHarmonicIndex + 1} Settings`;
 
         btnElements.forEach((btn, i) => {
@@ -462,7 +465,7 @@ export function createSliders() {
         });
     };
 
-    for (let i = 0; i < state.NUM_HARMONICS; i++) {
+    for (let i = 0; i < state.get().NUM_HARMONICS; i++) {
         const btn = document.createElement("button");
         btn.onclick = () => {
             activeHarmonicIndex = i;
@@ -475,11 +478,11 @@ export function createSliders() {
 
     if (masterAmp && masterPhi) {
         const onInput = () => {
-            state.targetHarmonics[activeHarmonicIndex] = parseFloat(masterAmp.value);
-            state.targetPhases[activeHarmonicIndex] = parseFloat(masterPhi.value);
+            renderState.targetHarmonics[activeHarmonicIndex] = parseFloat(masterAmp.value);
+            renderState.targetPhases[activeHarmonicIndex] = parseFloat(masterPhi.value);
 
-            if (masterAmpVal) masterAmpVal.textContent = state.targetHarmonics[activeHarmonicIndex].toFixed(0);
-            if (masterPhiVal) masterPhiVal.textContent = (state.targetPhases[activeHarmonicIndex] / Math.PI).toFixed(1);
+            if (masterAmpVal) masterAmpVal.textContent = renderState.targetHarmonics[activeHarmonicIndex].toFixed(0);
+            if (masterPhiVal) masterPhiVal.textContent = (renderState.targetPhases[activeHarmonicIndex] / Math.PI).toFixed(1);
 
             document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
         };

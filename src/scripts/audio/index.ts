@@ -1,4 +1,4 @@
-import { state } from "../core/state";
+import { state, renderState } from "../core/state";
 import { events, AUDIO_EVENTS } from "../core/events";
 
 // Lazy getters for DOM elements to ensure they are fetched after DOM is ready
@@ -97,7 +97,7 @@ export function switchStation(url: string) {
 
     stopMic();
     player.src = url;
-    if (state.isRadioMode) {
+    if (state.get().isRadioMode) {
         const playPromise = player.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
@@ -114,17 +114,18 @@ export function switchStation(url: string) {
 }
 
 export function updateAudioAnalysis(): number {
-    if (!state.isRadioMode || !analyzer || !dataArray) return 0;
+    if (!state.get().isRadioMode || !analyzer || !dataArray) return 0;
 
     analyzer.getByteFrequencyData(dataArray as any);
     const baseSens = 0.35;
     const input = getSensitivityInput();
     const sens = (input ? parseFloat(input.value) : 1.0) * baseSens;
     const binCount = analyzer.frequencyBinCount;
+    const activeHarmonics = state.get().NUM_HARMONICS;
 
     let totalEnergy = 0;
-    for (let i = 0; i < state.NUM_HARMONICS; i++) {
-        const samplesPerHarmonic = Math.max(1, Math.floor(binCount / state.NUM_HARMONICS));
+    for (let i = 0; i < activeHarmonics; i++) {
+        const samplesPerHarmonic = Math.max(1, Math.floor(binCount / activeHarmonics));
         const startBin = i * samplesPerHarmonic;
 
         let avgVal = 0;
@@ -133,17 +134,17 @@ export function updateAudioAnalysis(): number {
         }
         avgVal /= samplesPerHarmonic;
 
-        const freqWeight = (i < state.NUM_HARMONICS * 0.2) ? 1.2 : (i > state.NUM_HARMONICS * 0.7 ? 1.8 : 1.0);
+        const freqWeight = (i < activeHarmonics * 0.2) ? 1.2 : (i > activeHarmonics * 0.7 ? 1.8 : 1.0);
         const targetAmp = (avgVal / 255) * 100 * sens * freqWeight;
         totalEnergy += avgVal;
 
-        state.harmonics[i] += (targetAmp - state.harmonics[i]) * 0.15;
+        renderState.harmonics[i] += (targetAmp - renderState.harmonics[i]) * 0.15;
         if (avgVal > 50) {
-            state.phases[i] += (avgVal / 255) * 0.1 * sens;
+            renderState.phases[i] += (avgVal / 255) * 0.1 * sens;
         }
     }
 
-    const finalEnergy = totalEnergy / state.NUM_HARMONICS;
+    const finalEnergy = totalEnergy / activeHarmonics;
     if (finalEnergy > 150) {
         events.emit(AUDIO_EVENTS.BEAT, finalEnergy / 255);
     }
