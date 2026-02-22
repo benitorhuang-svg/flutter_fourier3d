@@ -210,10 +210,50 @@ events.on(AUDIO_EVENTS.BEAT, (strength) => {
     bloomPass.strength = 0.8 + strength * 1.5;
 });
 
+// --- FAST MATH LOOKUP TABLE (LUT) ---
+const LUT_SIZE = 8192;
+const sinLUT = new Float32Array(LUT_SIZE);
+const PI2 = Math.PI * 2;
+for (let i = 0; i < LUT_SIZE; i++) {
+    sinLUT[i] = Math.sin((i / LUT_SIZE) * PI2);
+}
+
+function fastSin(val: number): number {
+    let phase = val % PI2;
+    if (phase < 0) phase += PI2;
+    const idx = (phase / PI2) * LUT_SIZE;
+    return sinLUT[idx | 0]; // bitwise OR acts as fast Math.floor
+}
+
+function fastCos(val: number): number {
+    let phase = (val + Math.PI / 2) % PI2;
+    if (phase < 0) phase += PI2;
+    const idx = (phase / PI2) * LUT_SIZE;
+    return sinLUT[idx | 0];
+}
+
+// --- RENDER LOOP VISIBILITY TOGGLE ---
+let isPageVisible = true;
+let isAnimating = false;
+
+document.addEventListener("visibilitychange", () => {
+    isPageVisible = !document.hidden;
+    if (isPageVisible && !isAnimating) {
+        timer.update();
+        animate();
+    }
+});
+
 // --- RENDER LOOP ---
 const timer = new THREE.Timer();
 
 function animate() {
+    if (!isPageVisible) {
+        isAnimating = false;
+        return; // Pause the WebGL loop completely to save 100% CPU when tab is hidden
+    }
+    isAnimating = true;
+
     requestAnimationFrame(animate);
 
     timer.update();
@@ -244,8 +284,8 @@ function animate() {
         const speed = speedInput ? parseFloat(speedInput.value) : 1.0;
         const radius = radiusInput ? parseFloat(radiusInput.value) : 350;
         const time = Date.now() * 0.0005 * speed;
-        camera.position.x = Math.sin(time) * radius;
-        camera.position.z = Math.cos(time) * radius;
+        camera.position.x = fastSin(time) * radius;
+        camera.position.z = fastCos(time) * radius;
         camera.lookAt(0, 0, 0);
     }
 
@@ -276,7 +316,7 @@ function animate() {
             const n = i + 1;
             const amp = renderState.harmonics[i];
             const phi = renderState.phases[i] || 0;
-            const waveVal = amp * globalScale * Math.sin(n * phase + phi);
+            const waveVal = amp * globalScale * fastSin(n * phase + phi);
 
             ySum += waveVal;
 
@@ -303,7 +343,7 @@ function animate() {
     sumGeom.attributes.position.needsUpdate = true;
 
     stardust.rotation.y += 0.0001; // subtle rotation
-    stardust.rotation.x = Math.sin(renderState.timeOffset * 0.05) * 0.01;
+    stardust.rotation.x = fastSin(renderState.timeOffset * 0.05) * 0.01;
     stardust.visible = true; // Always visible for premium feel
 
     if (state.get().is2DMode) {
@@ -332,8 +372,8 @@ function animate() {
                 epicycleSpheres[i].rotation.x += 0.005 * n;
                 epicycleSpheres[i].rotation.y += 0.008 * n;
 
-                const nextCx = cx + scaledAmp * Math.cos(theta);
-                const nextCy = cy + scaledAmp * Math.sin(theta);
+                const nextCx = cx + scaledAmp * fastCos(theta);
+                const nextCy = cy + scaledAmp * fastSin(theta);
 
                 radiusLines[i].geometry.attributes.position.setXYZ(0, cx, cy, cz);
                 radiusLines[i].geometry.attributes.position.setXYZ(1, nextCx, nextCy, cz);
@@ -390,7 +430,7 @@ function animate() {
             const phase = (distFromRight / period) * Math.PI * 2 + renderState.timeOffset;
             const amp = renderState.harmonics[i];
             const phi = renderState.phases[i] || 0;
-            const waveVal = amp * Math.sin(n * phase + phi);
+            const waveVal = amp * fastSin(n * phase + phi);
 
             const zPosition = zHarmonicStart - i * zSpacing;
             connArr[idx6] = sliceX;
