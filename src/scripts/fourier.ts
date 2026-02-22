@@ -44,8 +44,12 @@ controls.target.set(0, 0, 0);
 
 // --- POST PROCESSING (BLOOM) ---
 const renderScene = new RenderPass(scene, camera);
+const pixelRatio = renderer.getPixelRatio();
+const targetResX = (window.innerWidth * pixelRatio) / 2;
+const targetResY = (window.innerHeight * pixelRatio) / 2;
+
 const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    new THREE.Vector2(targetResX, targetResY),
     0.4, // Reduced strength for cleaner look
     0.4, // Increased radius for smoother glow
     0.85 // Higher threshold
@@ -420,8 +424,11 @@ window.addEventListener("resize", () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        bloomPass.resolution.set(window.innerWidth, window.innerHeight);
+        const nextPixelRatio = Math.min(window.devicePixelRatio, 2);
+        renderer.setPixelRatio(nextPixelRatio);
+        const resX = (window.innerWidth * nextPixelRatio) / 2;
+        const resY = (window.innerHeight * nextPixelRatio) / 2;
+        bloomPass.resolution.set(resX, resY);
         syncCamera(); // Recalculate 2D distance for mobile portrait/landscape
     }, 150);
 });

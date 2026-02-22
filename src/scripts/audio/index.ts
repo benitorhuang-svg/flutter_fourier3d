@@ -28,7 +28,7 @@ export function setupAudioListeners() {
 
 let audioCtx: AudioContext | null = null;
 export let analyzer: AnalyserNode | null = null;
-export let dataArray: Uint8Array | null = null;
+export let dataArray: Float32Array | null = null;
 let audioSource: MediaElementAudioSourceNode | null = null;
 
 export let micSource: MediaStreamAudioSourceNode | null = null;
@@ -55,7 +55,7 @@ export function initAudio() {
     analyzer = audioCtx.createAnalyser();
     analyzer.fftSize = 128;
     const bufferLength = analyzer.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
+    dataArray = new Float32Array(bufferLength);
     audioSource = audioCtx.createMediaElementSource(player);
     audioSource.connect(analyzer);
     analyzer.connect(audioCtx.destination);
@@ -116,12 +116,16 @@ export function switchStation(url: string) {
 export function updateAudioAnalysis(): number {
     if (!state.get().isRadioMode || !analyzer || !dataArray) return 0;
 
-    analyzer.getByteFrequencyData(dataArray as any);
+    analyzer.getFloatFrequencyData(dataArray as any);
     const baseSens = 0.35;
     const input = getSensitivityInput();
     const sens = (input ? parseFloat(input.value) : 1.0) * baseSens;
     const binCount = analyzer.frequencyBinCount;
     const activeHarmonics = state.get().NUM_HARMONICS;
+
+    const minDb = analyzer.minDecibels;
+    const maxDb = analyzer.maxDecibels;
+    const range = maxDb - minDb;
 
     let totalEnergy = 0;
     for (let i = 0; i < activeHarmonics; i++) {
@@ -130,7 +134,14 @@ export function updateAudioAnalysis(): number {
 
         let avgVal = 0;
         for (let j = 0; j < samplesPerHarmonic; j++) {
-            avgVal += dataArray[startBin + j] || 0;
+            const dbVal = dataArray[startBin + j] || minDb;
+            // Normalize dB value to 0.0 ~ 1.0
+            let normalized = (dbVal - minDb) / range;
+            if (normalized < 0) normalized = 0;
+            if (normalized > 1) normalized = 1;
+
+            // Apply slight exponent curve to make louds louder and quiets quieter like human hearing
+            avgVal += Math.pow(normalized, 1.5) * 255;
         }
         avgVal /= samplesPerHarmonic;
 

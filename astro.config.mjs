@@ -1,11 +1,8 @@
-// @ts-check
 import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import AstroPWA from "@vite-pwa/astro";
-
 import node from "@astrojs/node";
 
-// https://astro.build/config
 export default defineConfig({
   site: "https://benitorhuang-svg.github.io",
   base: "/flutter_fourier3d",
@@ -35,6 +32,37 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,svg,png,webmanifest}"],
+        maximumFileSizeToCacheInBytes: 5000000,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gstatic-fonts-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
+            // Cache streaming audio or external assets if needed
+            urlPattern: /.*(?:mp3|audio).*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'audio-streams-cache',
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          }
+        ]
       },
     }),
   ],
@@ -52,9 +80,8 @@ export default defineConfig({
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('three')) {
-                return 'three';
-              }
+              if (id.includes('three')) return 'three';
+              if (id.includes('nanostores')) return 'nanostores';
               return 'vendor';
             }
           }
