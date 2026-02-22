@@ -1,6 +1,6 @@
 ---
 interface Props {
-  activeTab: 'home' | 'play_ground' | 'market_fourier' | 'market_data';
+  activeTab: 'home' | 'play_ground';
 }
 
 const { activeTab } = Astro.props;
@@ -32,7 +32,7 @@ const tabs = [
   </div>
 
   <!-- ROW 2: COMMAND TOOLBAR (Contextual) -->
-  {(activeTab === 'play_ground' || activeTab === 'market_fourier') && (
+  {activeTab === 'play_ground' && (
     <div class="max-w-fit flex items-center gap-2 p-1 rounded-xl border shadow-2xl pointer-events-auto" style="background: var(--color-bg-inner); border-color: var(--color-border-inner);">
       
       <!-- Mode Selection (Playground Only) -->
